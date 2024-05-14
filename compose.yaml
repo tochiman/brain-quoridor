@@ -9,11 +9,11 @@ services:
     expose:
       - 3000
     volumes:
-      - ./front/brain-quoridor:/app
+      - ./front/brain-quoridor-front:/app
     tty: true
     environment:
       - WATCHPACK_POLLING=true
-    command: "yarm dev"
+    command: "yarn dev"
     restart: always
     networks:
       - front
