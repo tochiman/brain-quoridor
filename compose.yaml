@@ -9,7 +9,7 @@ services:
     expose:
       - 3000
     volumes:
-      - ./front/brain-quoridor-front:/app
+      - ./front/brain-quoridor-front:/home/node/app
     tty: true
     environment:
       - WATCHPACK_POLLING=true
