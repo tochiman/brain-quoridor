@@ -1,10 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 import os
-
-app = FastAPI()
 
 root = os.getenv('ROOT_PATH')
 
-@app.get("%s" % root)
+app = FastAPI()
+router = APIRouter(prefix=root)
+
+@router.get("/")
 async def root():
     return {"message": "Hello World"}
+
+app.include_router(router)
