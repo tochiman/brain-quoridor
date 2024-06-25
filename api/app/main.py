@@ -1,7 +1,7 @@
 import os
 import base64
 
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Cookie
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -40,8 +40,24 @@ async def create(
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 404)
 
 @router.get("/join")
-async def join():
-    pass 
+async def join(
+    game_request: GameRequest,
+    cbid: str | None = Cookie(default = None),
+    cuid: str | None = Cookie(default = None)
+    ):
+    bid = gen_bid(game_request.board_name)
+    game = games.get(bid)
+    if game is not None:
+        if game.is_start == False:
+            uid = gen_bid()
+            game.uid_link("b", uid, game_request.user_name)
+            return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
+        else:
+            if bid == cbid:
+                return JSONResponse(content = {"bid": cbid, "uid": cuid}, status_code = 200)
+                
+    return JSONResponse(content = {"message": "ゲームに参加できません"}, status_code = 404)
+
 
 
 app.include_router(router)
