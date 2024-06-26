@@ -6,8 +6,8 @@ services:
       context: ./front
       dockerfile: Dockerfile
     user: node
-    expose:
-      - 3000
+    ports:
+    - 3000:3000
     volumes:
       - ./front/brain-quoridor-front:/home/node/app
     tty: true
