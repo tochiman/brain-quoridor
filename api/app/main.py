@@ -1,7 +1,8 @@
 import os
 import base64
+import asyncio
 
-from fastapi import FastAPI, APIRouter, Cookie
+from fastapi import FastAPI, APIRouter, Cookie, WebSocket
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -55,9 +56,30 @@ async def join(
         else:
             if bid == cbid:
                 return JSONResponse(content = {"bid": cbid, "uid": cuid}, status_code = 200)
-                
+
     return JSONResponse(content = {"message": "ゲームに参加できません"}, status_code = 404)
 
+@router.websocket("/ws")
+async def websocket(
+    ws: WebSocket,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    await ws.accept()
+    game = games.get(bid)
+    game.is_start = game.set_ws(uid, ws)
+
+    await ws.send_json({"status": 'successful'})
+
+    while True:
+        await asyncio.sleep(10)
+        try:
+            await asyncio.wait_for(ws.receive_text(), timeout = 5)
+        except:
+            await ws.close()
+            is_del = del_ws(uid)
+            if is_del == True:
+                del games[bid]
 
 
 app.include_router(router)
