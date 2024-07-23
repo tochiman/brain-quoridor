@@ -67,10 +67,12 @@ async def websocket(
     ):
     await ws.accept()
     game = games.get(bid)
-    game.is_start = game.set_ws(uid, ws)
-
-    await ws.send_json({"status": 'successful'})
-
+    is_start = game.set_ws(uid, ws)
+    if game.is_start == False and is_start == True: #接続
+        game.is_strat = is_start
+        game.notify_ws()
+    elif game.is_start == True and is_start == True: #再接続
+        game.notify_ws(uid)
     while True:
         await asyncio.sleep(10)
         try:

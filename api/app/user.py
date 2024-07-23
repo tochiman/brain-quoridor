@@ -13,10 +13,30 @@ class User:
 
         if self.color == "w":
             self.position = (4, 8)
-            self.turn = 1
+            self.turn = True
         elif self.color == "b":
             self.position = (4, 0)
-            self.turn = 0
+            self.turn = False
         else:
             raise UserException
 
+    def reach_goal(self):
+        _,y = self.position
+        if self.coler == "w":
+            if y == 0:
+                return True
+        else:
+            if y == 8:
+                return True
+        return False 
+    
+    def check_move(self, x, y, board, other_position): #次ここから　動けるかどうかを判定
+        x,y = self.position
+        if 
+        move_list = []
+
+
+    def move(self, x, y):
+        self.position = (x, y)
+
+    
