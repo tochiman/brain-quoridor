@@ -6,10 +6,14 @@ class Game:
         self.users = {}
         self.is_start = False
 
-    def set_board(self, x, y, wall_type):
+    def put_wall(self, x, y, wall_type, uid):
         self.board.append([(x,y), wall_type])
+        self.users[uid]["user"].wall -= 1
 
-    def check_wall(self, x, y, wall_type): #壁を置けるか確認(未実装)
+
+    def check_wall(self, x, y, wall_type, uid): #壁を置けるか確認(未実装)
+        if self.users[uid]["user"].wall == 0:
+            return False
         if not (0 <= x <= 8 and 0 <= y <= 8):
             return False
         for board in self.board:
@@ -23,7 +27,8 @@ class Game:
                     if board[0] == (x,y+1) or board[0] == (x,y-1):
                         return False
 
-        
+    def BFS(self):
+        pass
 
     def uid_link(self, color, uid, user_name):
         self.users[uid] = {"user_name": user_name, "user": User(color), "ws": None}
