@@ -28,9 +28,9 @@ class Game:
                     if board[0] == (x,y+1) or board[0] == (x,y-1):
                         return False
 
-        return BFS(x, y, wall_type):
+        return bfs(x, y, wall_type):
 
-    def BFS(self, x, y, wall_type):
+    def bfs(self, x, y, wall_type):
         b = deepcopy(self.board)
         b.append([(x, y), wall_type])
         result = [False, False]
