@@ -47,25 +47,46 @@ class User:
                 if (not [(x-1, y-2), "h"] in board) and (not [(x, y-2), "h"] in board) and (0 <= x <=8 and 0 <= y-2 <= 8): #壁がない
                     move_list.append((x,y-2))
                 else: #壁がある
-                    
+                    if (not [(x-1, y-2), "v"] in board) and (not [(x-1, y-1), "v"] in board) and (0 <= x-1 <= 8 and 0 <= y-1 <= 8):
+                        move_list.append((x-1, y-1))
+                    if (not [(x, y-2), "v"] in board) and (not [(x, y-1), "v"] in board) and (0 <= x+1 <= 8 and 0 <= y-1 <= 8):
+                        move_list.append((x+1, y-1))
             else:
                 move_list.append((x,y-1))
 
         if (not [(x-1, y), "h"] in board) and (not [(x, y), "h"] in board) and (0 <= x <=8 and 0 <= y+1 <= 8): #down
             if other_position == (x,y+1):
-                pass
+                if (not [(x-1, y+2), "h"] in board) and (not [(x, y+2), "h"] in board) and (0 <= x <=8 and 0 <= y+2 <= 8): #壁がない
+                    move_list.append((x,y+2))
+                else: #壁がある
+                    if (not [(x-1, y+2), "v"] in board) and (not [(x-1, y+1), "v"] in board) and (0 <= x-1 <= 8 and 0 <= y+1 <= 8):
+                        move_list.append((x-1, y+1))
+                    if (not [(x, y+2), "v"] in board) and (not [(x, y+1), "v"] in board) and (0 <= x+1 <= 8 and 0 <= y+1 <= 8):
+                        move_list.append((x+1, y+1))
             else:
                 move_list.append((x,y+1))
 
         if (not [(x-1, y-1), "v"] in board) and (not [(x-1, y), "v"] in board) and (0 <= x-1 <=8 and 0 <= y <= 8): #left
             if other_position == (x-1,y):
-                pass
+                if (not [(x-2, y-1), "v"] in board) and (not [(x-2, y), "v"] in board) and (0 <= x-2 <=8 and 0 <= y <= 8): #壁がない
+                    move_list.append((x-2,y))
+                else: #壁がある
+                    if (not [(x-2, y-1), "h"] in board) and (not [(x-1, y-1), "h"] in board) and (0 <= x-1 <= 8 and 0 <= y-1 <= 8):
+                        move_list.append((x-1, y-1))
+                    if (not [(x-2, y), "h"] in board) and (not [(x-1, y), "h"] in board) and (0 <= x-1 <= 8 and 0 <= y+1 <= 8):
+                        move_list.append((x-1, y+1))
             else:
                 move_list.append((x-1,y))
 
         if (not [(x, y-1), "v"] in board) and (not [(x, y), "v"] in board) and (0 <= x+1 <=8 and 0 <= y <= 8): #right
             if other_position == (x+1,y):
-                pass
+                if (not [(x+2, y-1), "v"] in board) and (not [(x+2, y), "v"] in board) and (0 <= x+2 <=8 and 0 <= y <= 8): #壁がない
+                    move_list.append((x+2,y))
+                else: #壁がある
+                    if (not [(x+2, y-1), "h"] in board) and (not [(x+1, y-1), "h"] in board) and (0 <= x+1 <= 8 and 0 <= y-1 <= 8):
+                        move_list.append((x+1, y-1))
+                    if (not [(x+2, y), "h"] in board) and (not [(x+1, y), "h"] in board) and (0 <= x+1 <= 8 and 0 <= y+1 <= 8):
+                        move_list.append((x+1, y+1))
             else:
                 move_list.append((x+1,y))
 
