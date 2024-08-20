@@ -17,18 +17,20 @@ class Game:
             return False
         if not (0 <= x <= 8 and 0 <= y <= 8):
             return False
+        if wall_type not in ["v", "h"]:
+            return False
         for board in self.board:
             if board[0] == (x,y):
                 return False
             if board[1] == wall_type:
-                if wall_type == "h"
+                if wall_type == "h":
                     if board[0] == (x+1,y) or board[0] == (x-1, y):
                         return False
-                elif wall_type == "v"
+                elif wall_type == "v":
                     if board[0] == (x,y+1) or board[0] == (x,y-1):
                         return False
 
-        return bfs(x, y, wall_type):
+        return bfs(x, y, wall_type)
 
     def bfs(self, x, y, wall_type):
         b = deepcopy(self.board)
@@ -48,6 +50,28 @@ class Game:
                     if not t in l:
                         l.append(t)
         return (result[0] and result[1])
+
+    def get_user(self, uid):
+        return self.users[uid]
+
+    def get_other(self, uid):
+        users = []
+        for user in self.users.values():
+            users.append(user)
+        for index, _user in enumerate(users):
+            user = _user["user"]
+            if uid is not None :
+                if users[uid] != user:
+                    continue
+            other = users[(index+1) % 2]
+        return other
+
+    def count_trun(self, uid):
+        user = self.get_user(uid)["user"]
+        other = self.get_other(uid)["user"]
+
+        user.count_trun()
+        other.count_trun()
 
     def uid_link(self, color, uid, user_name):
         self.users[uid] = {"user_name": user_name, "user": User(color), "ws": None}

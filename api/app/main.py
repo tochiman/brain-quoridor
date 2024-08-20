@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from game import Game
+from user import User
 
 root = os.getenv('ROOT_PATH')
 
@@ -25,7 +26,18 @@ def gen_uid():
 def gen_bid(board_name):
     return base64.b64encode(board_name.encode()).decode()
 
-@router.get("/create")
+class MoveRequest(BaseModel):
+    x: int
+    y: int
+
+class WallRequest(BaseModel):
+    x: int
+    y: int
+    wall_type: str
+
+
+
+@router.post("/create")
 async def create(
     game_request: GameRequest
     ):
@@ -40,7 +52,7 @@ async def create(
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 404)
 
-@router.get("/join")
+@router.post("/join")
 async def join(
     game_request: GameRequest,
     cbid: str | None = Cookie(default = None),
@@ -58,6 +70,60 @@ async def join(
                 return JSONResponse(content = {"bid": cbid, "uid": cuid}, status_code = 200)
 
     return JSONResponse(content = {"message": "ゲームに参加できません"}, status_code = 404)
+
+
+
+
+@router.post("/move")
+async def move(
+    move_request: MoveRequest,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    user = game.get_user(uid)["user"]
+    x = move_request.x
+    y = move_request.y
+
+    check_move = user.check_move(x,y)
+    if check_move == True:
+        user.move(x,y)
+        if user.reach_goal() == True:
+            pass #ゴール時の処理
+        game.count_trun()
+        
+        other = game.get_other(uid)["user"]
+        other.make_move_list(game.board, user.position)
+
+        game.notify_ws()
+
+
+
+
+@router.post("/wall")
+async def wall(
+    wall_request: WallRequest,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    user = game.get_user(uid)["user"]
+    x = wall_request.x
+    y = wall_request.y
+    wall_type = wall_request.wall_type
+
+    check_wall = game.check_wall(x, y, wall_type, uid)
+    if check_wall == True:
+        game.put_wall(x, y, wall_type)
+        game.count_trun()
+
+        other = game.get_other(uid)["user"]
+        other.make_move_list(game.board, user.position)
+        game.notify_ws()
+
+
+
+
 
 @router.websocket("/ws")
 async def websocket(

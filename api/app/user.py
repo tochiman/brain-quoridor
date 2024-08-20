@@ -13,11 +13,17 @@ class User:
         if self.color == "w":
             self.position = (4, 8)
             self.turn = True
+            
         elif self.color == "b":
             self.position = (4, 0)
             self.turn = False
+
         else:
             raise UserException
+        self.make_move_list([], ())
+
+    def count_trun(self):
+        self.trun = not self.trun
 
     def reach_goal(self):
         _, y = self.position
