@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<title>test</title>
+	<meta charset="utf-8" />
+	<script>
+		function create() {
+			const board = document.getElementById('boardName').value;
+			const user = document.getElementById('userName').value;
+
+			const postData = {
+				board_name: board,
+				user_name: user
+			};
+			fetch(`/api/create`, {
+				method: 'POST',
+				headers: {
+					"Content-Type": 'application/json'
+				},
+				body: JSON.stringify(postData)
+			})
+			.then(response => response.json())
+			.then(data => {
+				document.cookie=`bid=${data.bid}`
+				document.cookie=`uid=${data.uid}`
+				console.log(data);
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		function join() {
+			const board = document.getElementById('boardName').value;
+			const user = document.getElementById('userName').value;
+
+			const postData = {
+				board_name: board,
+				user_name: user
+			};
+			fetch(`/api/join`, {
+				method: 'POST',
+				headers: {
+					"Content-Type": 'application/json'
+				},
+				body: JSON.stringify(postData)
+			})
+			.then(response => response.json())
+			.then(data => {
+				document.cookie=`bid=${data.bid}`
+				document.cookie=`uid=${data.uid}`
+				console.log(data);
+			})
+			.catch(error => console.error('Error:', error));
+		}
+	</script>
+</head>
+<body>
+	<input type="text" id="boardName" placeholder="board name">
+	<input type="text" id="userName" placeholder="user name">
+	<button onclick="create()">create</button>
+	<button onclick="join()">join</button>
+	<a href="/game.html">game</a>
+</body>
+<html>

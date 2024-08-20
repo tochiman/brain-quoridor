@@ -22,8 +22,8 @@ class User:
             raise UserException
         self.make_move_list([], ())
 
-    def count_trun(self):
-        self.trun = not self.trun
+    def count_turn(self):
+        self.turn = not self.turn
 
     def reach_goal(self):
         _, y = self.position
@@ -31,7 +31,7 @@ class User:
         return self.reach_goal_do(y, color)
 
     def reach_goal_do(self, y, color):
-        if coler == "w":
+        if color == "w":
             if y == 0:
                 return True
         else:

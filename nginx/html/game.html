@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<title>test</title>
+	<meta charset="utf-8"/>
+	<script>
+		function move() {
+			const x = document.getElementById('move_x').value;
+			const y = document.getElementById('move_y').value;
+
+			const postData = {
+				x: x,
+				y: y
+			};
+			fetch(`/api/move`, {
+				method: 'POST',
+				headers: {
+					"Content-Type": 'application/json'
+				},
+				body: JSON.stringify(postData)
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		function wall() {
+			const x = document.getElementById('wall_x').value;
+			const y = document.getElementById('wall_y').value;
+			const wall_type = document.getElementById('wall_type').value;
+
+			const postData = {
+				x: x,
+				y: y,
+				wall_type: wall_type
+			};
+			fetch(`/api/wall`, {
+				method: 'POST',
+				headers: {
+					"Content-Type": 'application/json'
+				},
+				body: JSON.stringify(postData)
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		const list = ["name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "board"]
+		const ip = "192.168.100.170";
+		const socket = new WebSocket(`ws://${ip}/api/ws`);
+		
+		socket.addEventListener("open", (event) => {
+			console.log("接続が開かれました");
+		});
+
+		socket.addEventListener("message", (event) => {
+			console.log("メッセージを受信しました:", event.data);
+			obj = JSON.parse(event.data);
+			for (const elem of list) {
+				var element = document.getElementById(elem);
+				element.textContent = "";
+			}
+			Object.entries(obj).forEach(([key, value]) => {
+				var element = document.getElementById(key);
+				console.log(element, key, value);
+				element.textContent = JSON.stringify(value);
+			})
+		});
+
+		socket.addEventListener("close", (event) => {
+			console.log("接続が閉じられました");
+		});
+
+		socket.addEventListener("error", (event) => {
+			console.error("エラーが発生しました:", event);
+		});
+		setInterval(() => {
+			socket.send("ping");
+			console.log("ping");
+		},5000);
+		
+	</script>
+</head>
+<body>
+	<div>
+		<input type="text" id="move_x" placeholder="x">
+		<input type="text" id="move_y" placeholder="y">
+		<button onclick="move()">move</button>
+	</div>
+	<div>
+		<input type="text" id="wall_x" placeholder="x">
+		<input type="text" id="wall_y" placeholder="y">
+		<input type="text" id="wall_type" placeholder="wall type">
+		<button onclick="wall()">put wall</button>
+	</div>
+	<div>
+		<p>名前:</p>
+		<p id="name"></p>
+		<p>ターン:</p>
+		<p id="turn"></p>
+		<p>自分の位置:</p>
+		<p id="position"></p>
+		<p>自分の壁の枚数:</p>
+		<p id="wall"></p>
+		<p>色:</p>
+		<p id="color"></p>
+	</div>
+	<hr>
+	<div>
+		<p>相手の名前:</p>
+		<p id="other_name"></p>
+		<p>相手の位置:</p>
+		<p id="other_position"></p>
+		<p>相手の壁の枚数:</p>
+		<p id="other_wall"></p>
+	</div>
+	<hr>
+	<div>
+		<p>移動リスト:</p>
+		<p id="move_list"></p>
+		<p>壁リスト:</p>
+		<p id="board"></p>
+	</div>
+</body>
+</html>

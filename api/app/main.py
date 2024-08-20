@@ -7,7 +7,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from game import Game
-from user import User
 
 root = os.getenv('ROOT_PATH')
 
@@ -43,7 +42,19 @@ async def create(
     ):
 
     bid = gen_bid(game_request.board_name)
+    new_game = False
     if games.get(bid) == None: 
+        new_game = True
+    else:
+        count = 0
+        users = games.get(bid).users
+        for user in users.values():
+            if user["ws"] == None:
+                cout += 1
+        if count == len(users):
+            del games[bid]
+            new_game = True
+    if new_game:
         game = Game() 
         uid = gen_uid()
         game.uid_link("w", uid, game_request.user_name)
@@ -62,7 +73,7 @@ async def join(
     game = games.get(bid)
     if game is not None:
         if game.is_start == False:
-            uid = gen_bid()
+            uid = gen_uid()
             game.uid_link("b", uid, game_request.user_name)
             return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
         else:
@@ -90,12 +101,12 @@ async def move(
         user.move(x,y)
         if user.reach_goal() == True:
             pass #ゴール時の処理
-        game.count_trun()
+        game.count_turn(uid)
         
         other = game.get_other(uid)["user"]
         other.make_move_list(game.board, user.position)
 
-        game.notify_ws()
+        await game.notify_ws()
 
 
 
@@ -114,12 +125,12 @@ async def wall(
 
     check_wall = game.check_wall(x, y, wall_type, uid)
     if check_wall == True:
-        game.put_wall(x, y, wall_type)
-        game.count_trun()
+        game.put_wall(x, y, wall_type, uid)
+        game.count_turn(uid)
 
         other = game.get_other(uid)["user"]
         other.make_move_list(game.board, user.position)
-        game.notify_ws()
+        await game.notify_ws()
 
 
 
@@ -135,17 +146,17 @@ async def websocket(
     game = games.get(bid)
     is_start = game.set_ws(uid, ws)
     if game.is_start == False and is_start == True: #接続
-        game.is_strat = is_start
-        game.notify_ws()
+        game.set_is_start()
+        await game.notify_ws()
     elif game.is_start == True and is_start == True: #再接続
-        game.notify_ws(uid)
+        await game.notify_ws(uid)
     while True:
         await asyncio.sleep(10)
         try:
-            await asyncio.wait_for(ws.receive_text(), timeout = 5)
+            await asyncio.wait_for(ws.receive_text(), timeout = 10)
         except:
             await ws.close()
-            is_del = del_ws(uid)
+            is_del = game.del_ws(uid)
             if is_del == True:
                 del games[bid]
 

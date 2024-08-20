@@ -30,7 +30,7 @@ class Game:
                     if board[0] == (x,y+1) or board[0] == (x,y-1):
                         return False
 
-        return bfs(x, y, wall_type)
+        return self.bfs(x, y, wall_type)
 
     def bfs(self, x, y, wall_type):
         b = deepcopy(self.board)
@@ -61,22 +61,25 @@ class Game:
         for index, _user in enumerate(users):
             user = _user["user"]
             if uid is not None :
-                if users[uid] != user:
+                if self.users[uid]["user"] != user:
                     continue
             other = users[(index+1) % 2]
         return other
 
-    def count_trun(self, uid):
+    def count_turn(self, uid):
         user = self.get_user(uid)["user"]
         other = self.get_other(uid)["user"]
 
-        user.count_trun()
-        other.count_trun()
+        user.count_turn()
+        other.count_turn()
 
     def uid_link(self, color, uid, user_name):
         self.users[uid] = {"user_name": user_name, "user": User(color), "ws": None}
+
+    def set_is_start(self):
+        self.is_start = True
         
-    def notify_ws(self, uid = None):
+    async def notify_ws(self, uid = None):
         users = []
         for user in self.users.values():
             users.append(user)
@@ -84,12 +87,15 @@ class Game:
             ws = _user["ws"]
             user = _user["user"]
             if uid is not None :
-                if users[uid] != user:
+                if self.users[uid]["user"] != user:
                     continue
-            other = users[(index+1) % 2]["user"]
-            if user.trun == True:
-                ws.send_json({
-                    "trun": user.trun, 
+            _other = users[(index+1) % 2]
+            other = _other["user"]
+            if user.turn == True:
+                await ws.send_json({
+                    "name": _user["user_name"],
+                    "other_name": _other["user_name"],
+                    "turn": user.turn, 
                     "position": user.position, 
                     "other_position": other.position, 
                     "wall": user.wall,
@@ -99,8 +105,10 @@ class Game:
                     "board": self.board
                     })
             else:
-                ws.send_json({
-                    "trun": user.trun, 
+                await ws.send_json({
+                    "name": _user["user_name"],
+                    "other_name": _other["user_name"],
+                    "turn": user.turn, 
                     "position": user.position, 
                     "other_position": other.position, 
                     "wall": user.wall,
