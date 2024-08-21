@@ -43,7 +43,7 @@
 		}
 
 		const list = ["name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "board"]
-		const ip = "192.168.150.132";
+		const ip = "192.168.100.170";
 		const socket = new WebSocket(`ws://${ip}/api/ws`);
 		
 		socket.addEventListener("open", (event) => {
@@ -53,15 +53,26 @@
 		socket.addEventListener("message", (event) => {
 			console.log("メッセージを受信しました:", event.data);
 			obj = JSON.parse(event.data);
-			for (const elem of list) {
-				var element = document.getElementById(elem);
-				element.textContent = "";
+			if (obj.hasOwnProperty("message")) {
+				var body = document.body;
+				body.remove();
+				var body = document.createElement("body");
+				var head = document.head;
+				head.after(body);
+				var div = document.createElement("div");
+				div.innerText = obj.message;
+				body.append(div);
+			} else {
+				for (const elem of list) {
+					var element = document.getElementById(elem);
+					element.textContent = "";
+				}
+				Object.entries(obj).forEach(([key, value]) => {
+					var element = document.getElementById(key);
+					console.log(element, key, value);
+					element.textContent = JSON.stringify(value);
+				})
 			}
-			Object.entries(obj).forEach(([key, value]) => {
-				var element = document.getElementById(key);
-				console.log(element, key, value);
-				element.textContent = JSON.stringify(value);
-			})
 		});
 
 		socket.addEventListener("close", (event) => {

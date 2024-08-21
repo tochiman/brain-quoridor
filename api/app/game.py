@@ -75,9 +75,9 @@ class Game:
 
     async def win(self, uid):
         user = self.get_user(uid)["ws"]
-	other = self.get_other(uid)["ws"]
-	await user.send_json({"message":"勝利！"})
-	await other.send_json({"message":"敗北..."})
+        other = self.get_other(uid)["ws"]
+        await user.send_json({"message":"勝利！"})
+        await other.send_json({"message":"敗北..."})
 
     def uid_link(self, color, uid, user_name):
         self.users[uid] = {"user_name": user_name, "user": User(color), "ws": None}
