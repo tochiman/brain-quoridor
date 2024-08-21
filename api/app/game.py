@@ -73,12 +73,18 @@ class Game:
         user.count_turn()
         other.count_turn()
 
+    async def win(self, uid):
+        user = self.get_user(uid)["ws"]
+	other = self.get_other(uid)["ws"]
+	await user.send_json({"message":"勝利！"})
+	await other.send_json({"message":"敗北..."})
+
     def uid_link(self, color, uid, user_name):
         self.users[uid] = {"user_name": user_name, "user": User(color), "ws": None}
 
     def set_is_start(self):
         self.is_start = True
-        
+
     async def notify_ws(self, uid = None):
         users = []
         for user in self.users.values():

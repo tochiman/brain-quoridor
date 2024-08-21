@@ -101,9 +101,9 @@ async def move(
         if check_move == True:
             user.move(x,y)
             if user.reach_goal() == True:
-                pass #ゴール時の処理
+                await game.win(uid)
             game.count_turn(uid)
-        
+
             other = game.get_other(uid)["user"]
             other.make_move_list(game.board, user.position)
 
