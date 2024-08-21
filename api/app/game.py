@@ -15,7 +15,7 @@ class Game:
     def check_wall(self, x, y, wall_type, uid):
         if self.users[uid]["user"].wall == 0:
             return False
-        if not (0 <= x <= 8 and 0 <= y <= 8):
+        if not (0 <= x <= 7 and 0 <= y <= 7):
             return False
         if wall_type not in ["v", "h"]:
             return False
@@ -91,37 +91,38 @@ class Game:
             users.append(user)
         for index, _user in enumerate(users):
             ws = _user["ws"]
-            user = _user["user"]
-            if uid is not None :
-                if self.users[uid]["user"] != user:
-                    continue
-            _other = users[(index+1) % 2]
-            other = _other["user"]
-            if user.turn == True:
-                await ws.send_json({
-                    "name": _user["user_name"],
-                    "other_name": _other["user_name"],
-                    "turn": user.turn, 
-                    "position": user.position, 
-                    "other_position": other.position, 
-                    "wall": user.wall,
-                    "other_wall": other.wall,
-                    "color": user.color,
-                    "move_list": user.move_list,
-                    "board": self.board
-                    })
-            else:
-                await ws.send_json({
-                    "name": _user["user_name"],
-                    "other_name": _other["user_name"],
-                    "turn": user.turn, 
-                    "position": user.position, 
-                    "other_position": other.position, 
-                    "wall": user.wall,
-                    "other_wall": other.wall,
-                    "color": user.color,
-                    "board": self.board
-                    })
+            if ws is not None:
+                user = _user["user"]
+                if uid is not None :
+                    if self.users[uid]["user"] != user:
+                        continue
+                _other = users[(index+1) % 2]
+                other = _other["user"]
+                if user.turn == True:
+                    await ws.send_json({
+                        "name": _user["user_name"],
+                        "other_name": _other["user_name"],
+                        "turn": user.turn, 
+                        "position": user.position, 
+                        "other_position": other.position, 
+                        "wall": user.wall,
+                        "other_wall": other.wall,
+                        "color": user.color,
+                        "move_list": user.move_list,
+                        "board": self.board
+                        })
+                else:
+                    await ws.send_json({
+                        "name": _user["user_name"],
+                        "other_name": _other["user_name"],
+                        "turn": user.turn, 
+                        "position": user.position, 
+                        "other_position": other.position, 
+                        "wall": user.wall,
+                        "other_wall": other.wall,
+                        "color": user.color,
+                        "board": self.board
+                        })
 
 
     def set_ws(self, uid, ws):

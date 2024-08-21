@@ -7,6 +7,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from game import Game
+            
+from logging import getLogger, StreamHandler
+logger = getLogger(__name__)
+logger.addHandler(StreamHandler())
+logger.setLevel("INFO")
 
 root = os.getenv('ROOT_PATH')
 
@@ -50,7 +55,7 @@ async def create(
         users = games.get(bid).users
         for user in users.values():
             if user["ws"] == None:
-                cout += 1
+                count += 1
         if count == len(users):
             del games[bid]
             new_game = True
@@ -66,15 +71,19 @@ async def create(
 @router.post("/join")
 async def join(
     game_request: GameRequest,
-    cbid: str | None = Cookie(default = None),
-    cuid: str | None = Cookie(default = None)
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
     ):
+    cbid = bid
+    cuid = uid
     bid = gen_bid(game_request.board_name)
     game = games.get(bid)
     if game is not None:
         if game.is_start == False:
             uid = gen_uid()
             game.uid_link("b", uid, game_request.user_name)
+            game.set_is_start()
+            await game.notify_ws()
             return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
         else:
             if bid == cbid:
@@ -146,21 +155,19 @@ async def websocket(
     ):
     await ws.accept()
     game = games.get(bid)
-    is_start = game.set_ws(uid, ws)
-    if game.is_start == False and is_start == True: #接続
-        game.set_is_start()
-        await game.notify_ws()
-    elif game.is_start == True and is_start == True: #再接続
-        await game.notify_ws(uid)
-    while True:
-        await asyncio.sleep(10)
-        try:
-            await asyncio.wait_for(ws.receive_text(), timeout = 10)
-        except:
-            await ws.close()
-            is_del = game.del_ws(uid)
-            if is_del == True:
-                del games[bid]
+    if game is not None:
+        is_start = game.set_ws(uid, ws)
+        if game.is_start == True:
+            await game.notify_ws(uid)
+        while True:
+            await asyncio.sleep(10)
+            try:
+                await asyncio.wait_for(ws.receive_text(), timeout = 10)
+            except:
+                await ws.close()
+                is_del = game.del_ws(uid)
+                if is_del == True:
+                    del games[bid]
 
 
 app.include_router(router)
