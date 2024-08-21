@@ -95,18 +95,19 @@ async def move(
     user = game.get_user(uid)["user"]
     x = move_request.x
     y = move_request.y
+    if user.turn == True:
 
-    check_move = user.check_move(x,y)
-    if check_move == True:
-        user.move(x,y)
-        if user.reach_goal() == True:
-            pass #ゴール時の処理
-        game.count_turn(uid)
+        check_move = user.check_move(x,y)
+        if check_move == True:
+            user.move(x,y)
+            if user.reach_goal() == True:
+                pass #ゴール時の処理
+            game.count_turn(uid)
         
-        other = game.get_other(uid)["user"]
-        other.make_move_list(game.board, user.position)
+            other = game.get_other(uid)["user"]
+            other.make_move_list(game.board, user.position)
 
-        await game.notify_ws()
+            await game.notify_ws()
 
 
 
@@ -123,14 +124,15 @@ async def wall(
     y = wall_request.y
     wall_type = wall_request.wall_type
 
-    check_wall = game.check_wall(x, y, wall_type, uid)
-    if check_wall == True:
-        game.put_wall(x, y, wall_type, uid)
-        game.count_turn(uid)
+    if user.turn == True:
+        check_wall = game.check_wall(x, y, wall_type, uid)
+        if check_wall == True:
+            game.put_wall(x, y, wall_type, uid)
+            game.count_turn(uid)
 
-        other = game.get_other(uid)["user"]
-        other.make_move_list(game.board, user.position)
-        await game.notify_ws()
+            other = game.get_other(uid)["user"]
+            other.make_move_list(game.board, user.position)
+            await game.notify_ws()
 
 
 
