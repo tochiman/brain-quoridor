@@ -13,22 +13,23 @@ class User:
         if self.color == "w":
             self.position = (4, 8)
             self.turn = True
-            
         elif self.color == "b":
             self.position = (4, 0)
             self.turn = False
-
         else:
             raise UserException
         self.make_move_list([], ())
 
+
     def count_turn(self):
         self.turn = not self.turn
+
 
     def reach_goal(self):
         _, y = self.position
         color = self.color
         return self.reach_goal_do(y, color)
+
 
     def reach_goal_do(self, y, color):
         if color == "w":
@@ -39,12 +40,15 @@ class User:
                 return True
         return False 
     
+
     def check_move(self, x, y): 
         return (x,y) in self.move_list
+
 
     def make_move_list(self, board, other_position):
         x, y = self.position
         self.move_list = self.make_move_list_do(x, y, board, other_position)
+
 
     def make_move_list_do(self, x, y, board, other_position):
         move_list = []
@@ -101,4 +105,3 @@ class User:
 
     def move(self, x, y):
         self.position = (x, y)
-

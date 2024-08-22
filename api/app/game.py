@@ -7,6 +7,7 @@ class Game:
         self.users = {}
         self.is_start = False
 
+
     def put_wall(self, x, y, wall_type, uid):
         self.board.append([(x,y), wall_type])
         self.users[uid]["user"].wall -= 1
@@ -32,6 +33,7 @@ class Game:
 
         return self.bfs(x, y, wall_type)
 
+
     def bfs(self, x, y, wall_type):
         b = deepcopy(self.board)
         b.append([(x, y), wall_type])
@@ -51,8 +53,10 @@ class Game:
                         l.append(t)
         return (result[0] and result[1])
 
+
     def get_user(self, uid):
         return self.users[uid]
+
 
     def get_other(self, uid):
         users = []
@@ -66,6 +70,7 @@ class Game:
             other = users[(index+1) % 2]
         return other
 
+
     def count_turn(self, uid):
         user = self.get_user(uid)["user"]
         other = self.get_other(uid)["user"]
@@ -73,30 +78,32 @@ class Game:
         user.count_turn()
         other.count_turn()
 
+
     async def win(self, uid):
         user = self.get_user(uid)["ws"]
         other = self.get_other(uid)["ws"]
+
         await user.send_json({"message":"勝利！"})
         await other.send_json({"message":"敗北..."})
+
 
     def uid_link(self, color, uid, user_name):
         self.users[uid] = {"user_name": user_name, "user": User(color), "ws": None}
 
+
     def set_is_start(self):
         self.is_start = True
 
+
     async def notify_ws(self, uid = None):
-        users = []
-        for user in self.users.values():
-            users.append(user)
-        for index, _user in enumerate(users):
+        for _uid, _user in self.users.items():
             ws = _user["ws"]
             if ws is not None:
-                user = _user["user"]
                 if uid is not None :
-                    if self.users[uid]["user"] != user:
+                    if uid != _uid:
                         continue
-                _other = users[(index+1) % 2]
+                user = _user["user"]
+                _other = self.get_other(_uid)
                 other = _other["user"]
                 if user.turn == True:
                     await ws.send_json({
@@ -127,23 +134,19 @@ class Game:
 
     def set_ws(self, uid, ws):
         self.users[uid]["ws"] = ws
-        count = 0
-        for user in self.users.values():
-            if user["ws"] is not None:
-                count += 1
 
-        if count == 2:
-            return True
-        return False
-    
+
     def del_ws(self, uid):
         self.users[uid]["ws"] = None
+
+
+    def is_del(self):
         count = 0
         for user in self.users.values():
             if user["ws"] is None:
                 count += 1
 
-        if count == 2:
+        if count == len(self.users):
             return True
         return False
 

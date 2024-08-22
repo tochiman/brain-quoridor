@@ -23,22 +23,24 @@ class GameRequest(BaseModel):
     board_name: str
     user_name: str
 
-def gen_uid():
-    return os.urandom(32).hex()
-
-
-def gen_bid(board_name):
-    return base64.b64encode(board_name.encode()).decode()
 
 class MoveRequest(BaseModel):
     x: int
     y: int
+
 
 class WallRequest(BaseModel):
     x: int
     y: int
     wall_type: str
 
+
+def gen_uid():
+    return os.urandom(32).hex()
+
+
+def gen_bid(board_name):
+    return base64.b64encode(board_name.encode()).decode()
 
 
 @router.post("/create")
@@ -48,19 +50,16 @@ async def create(
 
     bid = gen_bid(game_request.board_name)
     new_game = False
-    if games.get(bid) == None: 
+    game = games.get(bid)
+    if game == None:
         new_game = True
     else:
-        count = 0
-        users = games.get(bid).users
-        for user in users.values():
-            if user["ws"] == None:
-                count += 1
-        if count == len(users):
+        is_del = game.is_del()
+        if is_del == True:
             del games[bid]
             new_game = True
     if new_game:
-        game = Game() 
+        game = Game()
         uid = gen_uid()
         game.uid_link("w", uid, game_request.user_name)
         games[bid] = game
@@ -86,12 +85,10 @@ async def join(
             await game.notify_ws()
             return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
         else:
-            if bid == cbid:
+            if bid == cbid and uid in game.users.keys():
                 return JSONResponse(content = {"bid": cbid, "uid": cuid}, status_code = 200)
 
     return JSONResponse(content = {"message": "ゲームに参加できません"}, status_code = 404)
-
-
 
 
 @router.post("/move")
@@ -105,20 +102,19 @@ async def move(
     x = move_request.x
     y = move_request.y
     if user.turn == True:
-
         check_move = user.check_move(x,y)
         if check_move == True:
             user.move(x,y)
             if user.reach_goal() == True:
                 await game.win(uid)
+                del games[bid]
+                return
             game.count_turn(uid)
 
             other = game.get_other(uid)["user"]
             other.make_move_list(game.board, user.position)
 
             await game.notify_ws()
-
-
 
 
 @router.post("/wall")
@@ -141,10 +137,8 @@ async def wall(
 
             other = game.get_other(uid)["user"]
             other.make_move_list(game.board, user.position)
+
             await game.notify_ws()
-
-
-
 
 
 @router.websocket("/ws")
@@ -156,18 +150,19 @@ async def websocket(
     await ws.accept()
     game = games.get(bid)
     if game is not None:
-        is_start = game.set_ws(uid, ws)
-        if game.is_start == True:
-            await game.notify_ws(uid)
-        while True:
-            await asyncio.sleep(10)
-            try:
-                await asyncio.wait_for(ws.receive_text(), timeout = 10)
-            except:
-                await ws.close()
-                is_del = game.del_ws(uid)
-                if is_del == True:
-                    del games[bid]
+        if uid in game.users.keys():
+            game.set_ws(uid, ws)
+            if game.is_start == True:
+                await game.notify_ws(uid)
+            while True:
+                await asyncio.sleep(10)
+                try:
+                    await asyncio.wait_for(ws.receive_text(), timeout = 10)
+                except:
+                    game.del_ws(uid)
+                    is_del = game.is_del()
+                    if is_del == True:
+                        del games[bid]
 
 
 app.include_router(router)
