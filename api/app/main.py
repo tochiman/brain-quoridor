@@ -143,6 +143,7 @@ async def move(
             return JSONResponse(content = {"message": ""}, status_code = 400)
     return JSONResponse(content = {"message": ""}, status_code = 400)
 
+
 @router.post("/wall")
 async def wall(
     wall_request: WallRequest,
@@ -231,7 +232,7 @@ async def break_wall(
 
     if game.move_everyone:
         return JSONResponse(content = {"message": ""}, status_code = 400)
-    
+
     if game.twice:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
@@ -256,7 +257,7 @@ async def break_wall(
         else:
             return JSONResponse(content = {"message": ""}, status_code = 400)
     return JSONResponse(content = {"message": ""}, status_code = 400)
-    
+
 
 @router.post("/replace_wall")
 async def replace_wall(
@@ -311,6 +312,7 @@ async def replace_wall(
             return JSONResponse(content = {"message": ""}, status_code = 400)
     return JSONResponse(content = {"message": ""}, status_code = 400)
 
+
 @router.post("/twice")
 async def twice(
     bid: str | None = Cookie(default = None),
@@ -336,7 +338,6 @@ async def twice(
         else:
             return JSONResponse(content = {"message": ""}, status_code = 400)
     return JSONResponse(content = {"message": ""}, status_code = 400)
-
 
 
 @router.post("/move_everyone")
