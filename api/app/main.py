@@ -75,7 +75,7 @@ async def create(
         games[bid] = game
         return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
 
-    return JSONResponse(content = {"message": "既に存在しています"}, status_code = 404)
+    return JSONResponse(content = {"message": "既に存在しています"}, status_code = 400)
 
 
 @router.post("/join")
@@ -99,7 +99,7 @@ async def join(
             if bid == cbid and uid in game.users.keys():
                 return JSONResponse(content = {"bid": cbid, "uid": cuid}, status_code = 200)
 
-    return JSONResponse(content = {"message": "ゲームに参加できません"}, status_code = 404)
+    return JSONResponse(content = {"message": "ゲームに参加できません"}, status_code = 400)
 
 
 @router.post("/move")
@@ -109,10 +109,12 @@ async def move(
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
     x = move_request.x
     y = move_request.y
-    if user.turn:
+    if user.turn or game.move_other:
         check_move = user.check_move(x,y)
         if check_move:
             user.move(x,y)
@@ -122,21 +124,24 @@ async def move(
             if user.reach_goal():
                 await game.win(uid)
                 del games[bid]
-                return
+                return JSONResponse(content = {"message": "ゲームが終了しました"}, status_code = 200)
             
             other = game.get_other(uid)["user"]
+            user.make_move_list(game.board, other.position)
             other.make_move_list(game.board, user.position)
-            
+
             if game.move_other:
                 game.unset_move_other()
             elif game.twice:
                 game.unset_twice()
             else: 
-                game.count_turn()
                 game.unset_move_everyone()
-        
+                game.count_turn()
             await game.notify_ws()
-
+            return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+        else:
+            return JSONResponse(content = {"message": ""}, status_code = 400)
+    return JSONResponse(content = {"message": ""}, status_code = 400)
 
 @router.post("/wall")
 async def wall(
@@ -145,25 +150,35 @@ async def wall(
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
     x = wall_request.x
     y = wall_request.y
     wall_type = wall_request.wall_type
 
-    if user.turn and not game.move_everyone:
+    if game.move_everyone:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+
+    if user.turn:
         check_wall = game.check_wall(x, y, wall_type, uid)
         if check_wall:
             game.put_wall(x, y, wall_type, uid)
     
             other = game.get_other(uid)["user"]
+            user.make_move_list(game.board, other.position)
             other.make_move_list(game.board, user.position)
             
             if game.twice:
-               game.unset_twice()
+                game.unset_twice()
             else: 
                 game.count_turn()
 
             await game.notify_ws()
+            return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+        else:
+            return JSONResponse(content = {"message": ""}, status_code = 400)
+    return JSONResponse(content = {"message": ""}, status_code = 400)
 
 
 @router.post("/get_wall")
@@ -172,9 +187,17 @@ async def get_wall(
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
-    if user.turn and not game.twice and not game.move_everyone:
+    if game.move_everyone:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+
+    if game.twice:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+
+    if user.turn:
         check_item = user.check_item("get_wall")
         if check_item:
             user.add_wall()
@@ -182,6 +205,10 @@ async def get_wall(
             game.count_turn()
             
             await game.notify_ws()
+            return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+        else:
+            return JSONResponse(content = {"message": ""}, status_code = 400)
+    return JSONResponse(content = {"message": ""}, status_code = 400)
 
 
 @router.post("/break_wall")
@@ -191,6 +218,8 @@ async def break_wall(
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
     x1 = item_wall_request.x1
@@ -200,7 +229,13 @@ async def break_wall(
     y2 = item_wall_request.y2
     wall_type2 = item_wall_request.wall_type2
 
-    if user.turn and not game.twice and not game.move_everyone:
+    if game.move_everyone:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+    
+    if game.twice:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+
+    if user.turn:
         check_item = user.check_item("break_wall")
         if check_item:
             if game.is_wall(x1, y1, wall_type1) and game.is_wall(x2, y2, wall_type2):
@@ -209,13 +244,20 @@ async def break_wall(
                 user.remove_item("break_wall")
 
                 other = game.get_other(uid)["user"]
+                user.make_move_list(game.board, other.position)
                 other.make_move_list(game.board, user.position)
 
                 game.count_turn()
             
                 await game.notify_ws()
-
+                return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+            else:
+                return JSONResponse(content = {"message": ""}, status_code = 400)
+        else:
+            return JSONResponse(content = {"message": ""}, status_code = 400)
+    return JSONResponse(content = {"message": ""}, status_code = 400)
     
+
 @router.post("/replace_wall")
 async def replace_wall(
     item_wall_request: ItemWallRequest,
@@ -223,6 +265,8 @@ async def replace_wall(
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
     #移動前
@@ -234,7 +278,13 @@ async def replace_wall(
     y2 = item_wall_request.y2
     wall_type2 = item_wall_request.wall_type2
 
-    if user.turn and not game.twice and not game.move_everyone:
+    if game.move_everyone:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+    
+    if game.twice:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+
+    if user.turn:
         check_item = user.check_item("replace_wall")
         if check_item:
             if game.is_wall(x1, y1, wall_type1):
@@ -245,14 +295,21 @@ async def replace_wall(
                     user.remove_item("replace_wall")
             
                     other = game.get_other(uid)["user"]
+                    user.make_move_list(game.board, other.position)
                     other.make_move_list(game.board, user.position)
 
                     game.count_turn()
 
                     await game.notify_ws()
+                    return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
                 else:
                     game.put_wall(x1, y1, wall_type1)
-
+                    return JSONResponse(content = {"message": ""}, status_code = 400)
+            else:
+                return JSONResponse(content = {"message": ""}, status_code = 400)
+        else:
+            return JSONResponse(content = {"message": ""}, status_code = 400)
+    return JSONResponse(content = {"message": ""}, status_code = 400)
 
 @router.post("/twice")
 async def twice(
@@ -260,14 +317,25 @@ async def twice(
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
-    if user.turn and not game.twice and not game.move_everyone:
+    if game.move_everyone:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+    
+    if game.twice:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+
+    if user.turn:
         check_item = user.check_item("twice")
         if check_item:
             game.set_twice()
             user.remove_item("twice")
-            await game.notify_ws()
+            return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+        else:
+            return JSONResponse(content = {"message": ""}, status_code = 400)
+    return JSONResponse(content = {"message": ""}, status_code = 400)
 
 
 
@@ -278,9 +346,17 @@ async def move_everyone(
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
-    if user.turn and not game.twice and not game.move_everyone:
+    if game.move_everyone:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+    
+    if game.twice:
+        return JSONResponse(content = {"message": ""}, status_code = 400)
+
+    if user.turn:
         check_item = user.check_item("move_everyone")
         if check_item:
             other_uid = game.get_other_uid(uid)
@@ -288,7 +364,10 @@ async def move_everyone(
             game.set_move_everyone()
             await move(move_request, bid, other_uid)
             user.remove_item("move_everyone")
-            await game.notify_ws()
+            return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+        else:
+            return JSONResponse(content = {"message": ""}, status_code = 400)
+    return JSONResponse(content = {"message": ""}, status_code = 400)
 
 
 @router.websocket("/ws")
@@ -307,12 +386,14 @@ async def websocket(
             while True:
                 await asyncio.sleep(10)
                 try:
-                    await asyncio.wait_for(ws.receive_text(), timeout = 10)
+                    await ws.send_json({"message": "ping"})
                 except:
-                    game.del_ws(uid)
-                    is_del = game.is_del()
-                    if is_del:
-                        del games[bid]
+                    _ws = game.get_user(uid)["ws"]
+                    if _ws == ws:
+                        game.del_ws(uid)
+                        is_del = game.is_del()
+                        if is_del:
+                            del games[bid]
 
 
 app.include_router(router)

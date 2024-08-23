@@ -15,9 +15,10 @@ class Game:
         self.move_everyone = False
 
 
-    def put_wall(self, x, y, wall_type, uid):
+    def put_wall(self, x, y, wall_type, uid = None):
         self.board.append([(x, y), wall_type])
-        self.users[uid]["user"].wall -= 1
+        if uid is not None:
+            self.users[uid]["user"].wall -= 1
 
 
     def check_wall(self, x, y, wall_type, uid):
@@ -130,8 +131,9 @@ class Game:
                         "other_wall": other.wall,
                         "color": user.color,
                         "move_list": user.move_list,
+                        "other_move_list": other.move_list,
                         "board": self.board,
-                        "item_position": self.items.keys(),
+                        "item_position": [item for item in self.items.keys()],
                         "item": user.items,
                         "other_item": other.items
                         })
@@ -146,7 +148,7 @@ class Game:
                         "other_wall": other.wall,
                         "color": user.color,
                         "board": self.board,
-                        "item_position": self.items.keys(),
+                        "item_position": [item for item in self.items.keys()],
                         "item": user.items,
                         "other_item": other.items
                         })

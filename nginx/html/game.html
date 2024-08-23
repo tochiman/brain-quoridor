@@ -19,6 +19,13 @@
 				},
 				body: JSON.stringify(postData)
 			})
+			.then(response => {
+				if (response.ok) {
+					console.log("success");
+					return;
+				}
+				console.error(response.error);
+			})
 			.catch(error => {console.error('Error:', error)});
 		}
 
@@ -39,10 +46,151 @@
 				},
 				body: JSON.stringify(postData)
 			})
+			.then(response => {
+				if (response.ok) {
+					console.log("success");
+					return;
+				}
+				console.error(response.error);
+			})
 			.catch(error => {console.error('Error:', error)});
 		}
 
-		const list = ["name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "board"]
+		function get_wall() {
+			fetch(`/api/get_wall`, {
+				method: 'POST'
+			})
+			.then(response => {
+				if (response.ok) {
+					var button = document.getElementById("get_wall");
+					button.disabled = "disabled";
+					button.style.backgroundColor = "#f44336";
+					console.log("success");
+					return;
+				}
+				console.error(response.error);
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		function twice() {
+			fetch(`/api/twice`, {
+				method: 'POST'
+			})
+			.then(response => {
+				if (response.ok) {
+					var button = document.getElementById("twice");
+					button.disabled = "disabled";
+					button.style.backgroundColor = "#f44336";
+					console.log("success");
+					return;
+				}
+				console.error(response.error);
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		function break_wall() {
+			const x1 = document.getElementById('wall_x1').value;
+			const y1 = document.getElementById('wall_y1').value;
+			const wall_type1 = document.getElementById('wall_type1').value;
+			const x2 = document.getElementById('wall_x2').value;
+			const y2 = document.getElementById('wall_y2').value;
+			const wall_type2 = document.getElementById('wall_type2').value;
+
+			const postData = {
+				x1: x1,
+				y1: y1,
+				wall_type1: wall_type1,
+				x2: x2,
+				y2: y2,
+				wall_type2: wall_type2
+			};
+			fetch(`/api/break_wall`, {
+				method: 'POST',
+				headers: {
+					"Content-Type": 'application/json'
+				},
+				body: JSON.stringify(postData)
+			})
+			.then(response => {
+				if (response.ok) {
+					var button = document.getElementById("break_wall");
+					button.disabled = "disabled";
+					button.style.backgroundColor = "#f44336";
+					console.log("success");
+					return;
+				}
+				console.error(response.error);
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		function replace_wall() {
+			const x1 = document.getElementById('wall_x1').value;
+			const y1 = document.getElementById('wall_y1').value;
+			const wall_type1 = document.getElementById('wall_type1').value;
+			const x2 = document.getElementById('wall_x2').value;
+			const y2 = document.getElementById('wall_y2').value;
+			const wall_type2 = document.getElementById('wall_type2').value;
+
+			const postData = {
+				x1: x1,
+				y1: y1,
+				wall_type1: wall_type1,
+				x2: x2,
+				y2: y2,
+				wall_type2: wall_type2
+			};
+			fetch(`/api/replace_wall`, {
+				method: 'POST',
+				headers: {
+					"Content-Type": 'application/json'
+				},
+				body: JSON.stringify(postData)
+			})
+			.then(response => {
+				if (response.ok) {
+					var button = document.getElementById("replace_wall");
+					button.disabled = "disabled";
+					button.style.backgroundColor = "#f44336";
+					console.log("success");
+					return;
+				}
+				console.error(response.error);
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		function move_everyone() {
+			const x = document.getElementById('move_x').value;
+			const y = document.getElementById('move_y').value;
+
+			const postData = {
+				x: x,
+				y: y
+			};
+			fetch(`/api/move_everyone`, {
+				method: 'POST',
+				headers: {
+					"Content-Type": 'application/json'
+				},
+				body: JSON.stringify(postData)
+			})
+			.then(response => {
+				if (response.ok) {
+					var button = document.getElementById("move_everyone");
+					button.disabled = "disabled";
+					button.style.backgroundColor = "#f44336";
+					console.log("success");
+					return;
+				}
+				console.error(response.error);
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
+
+		const list = ["item_position", "item", "other_item", "name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "other_move_list", "board"]
 		const ip = "192.168.100.170";
 		const socket = new WebSocket(`ws://${ip}/api/ws`);
 		
@@ -54,14 +202,16 @@
 			console.log("メッセージを受信しました:", event.data);
 			obj = JSON.parse(event.data);
 			if (obj.hasOwnProperty("message")) {
-				var body = document.body;
-				body.remove();
-				var body = document.createElement("body");
-				var head = document.head;
-				head.after(body);
-				var div = document.createElement("div");
-				div.innerText = obj.message;
-				body.append(div);
+				if (obj.message !== "ping") {
+					var body = document.body;
+					body.remove();
+					var body = document.createElement("body");
+					var head = document.head;
+					head.after(body);
+					var div = document.createElement("div");
+					div.innerText = obj.message;
+					body.append(div);
+				}
 			} else {
 				for (const elem of list) {
 					var element = document.getElementById(elem);
@@ -71,6 +221,13 @@
 					var element = document.getElementById(key);
 					console.log(element, key, value);
 					element.textContent = JSON.stringify(value);
+					if (key === 'item') {
+						for (const v of value) {
+							var button = document.getElementById(v);
+							button.disabled = null;
+							button.style.backgroundColor = "#04AA6D";
+						}
+					}
 				})
 			}
 		});
@@ -82,24 +239,54 @@
 		socket.addEventListener("error", (event) => {
 			console.error("エラーが発生しました:", event);
 		});
-		setInterval(() => {
-			socket.send("ping");
-			console.log("ping");
-		},5000);
-		
 	</script>
 </head>
 <body>
 	<div>
+		<button style="background-color: #f44336;" id="get_wall" onclick="get_wall()" disabled>get wall</button>
+		<button style="background-color: #f44336;" id="twice" onclick="twice()" disabled>twice</button>
+	</div>
+	<div>
 		<input type="text" id="move_x" placeholder="x">
 		<input type="text" id="move_y" placeholder="y">
-		<button onclick="move()">move</button>
+	</div>
+	<div>
+		<button style="background-color: #04AA6D;" onclick="move()">move</button>
+		<button style="background-color: #f44336;" id="move_everyone" onclick="move_everyone()" disabled>move_everyone</button>
 	</div>
 	<div>
 		<input type="text" id="wall_x" placeholder="x">
 		<input type="text" id="wall_y" placeholder="y">
 		<input type="text" id="wall_type" placeholder="wall type">
-		<button onclick="wall()">put wall</button>
+	</div>
+	<div>
+		<button style="background-color: #04AA6D;" onclick="wall()">put wall</button>
+	</div>
+	<div>
+		<input type="text" id="wall_x1" placeholder="x1">
+		<input type="text" id="wall_y1" placeholder="y1">
+		<input type="text" id="wall_type1" placeholder="wall type1">
+	</div>
+	<div>
+		<input type="text" id="wall_x2" placeholder="x2">
+		<input type="text" id="wall_y2" placeholder="y2">
+		<input type="text" id="wall_type2" placeholder="wall type2">
+	</div>
+	<div>
+		<button style="background-color: #f44336;" id="break_wall" onclick="break_wall()" disabled>break wall</button>
+		<button style="background-color: #f44336;" id="replace_wall" onclick="replace_wall()" disabled>replace wall</button>
+	</div>
+	<div>
+	</div>
+	<div>
+		<p>移動リスト:</p>
+		<p id="move_list"></p>
+		<p>相手の移動リスト:</p>
+		<p id="other_move_list"></p>
+		<p>壁リスト:</p>
+		<p id="board"></p>
+		<p>アイテムマス:</p>
+		<p id="item_position"></p>
 	</div>
 	<div>
 		<p>名前:</p>
@@ -112,6 +299,8 @@
 		<p id="wall"></p>
 		<p>色:</p>
 		<p id="color"></p>
+		<p>自分のアイテム:</p>
+		<p id="item"></p>
 	</div>
 	<hr>
 	<div>
@@ -121,13 +310,9 @@
 		<p id="other_position"></p>
 		<p>相手の壁の枚数:</p>
 		<p id="other_wall"></p>
+		<p>相手のアイテム:</p>
+		<p id="other_item"></p>
 	</div>
 	<hr>
-	<div>
-		<p>移動リスト:</p>
-		<p id="move_list"></p>
-		<p>壁リスト:</p>
-		<p id="board"></p>
-	</div>
 </body>
 </html>

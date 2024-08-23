@@ -117,7 +117,7 @@ class User:
 
 
     def check_item(self, item):
-        return item in self.items.keys() 
+        return item in self.items
 
     
     def remove_item(self, item):
