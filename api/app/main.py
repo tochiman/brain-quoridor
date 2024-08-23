@@ -114,7 +114,7 @@ async def move(
     user = game.get_user(uid)["user"]
     x = move_request.x
     y = move_request.y
-    if user.turn or game.move_other:
+    if user.turn or game.move_everyone:
         check_move = user.check_move(x,y)
         if check_move:
             user.move(x,y)
@@ -130,12 +130,13 @@ async def move(
             user.make_move_list(game.board, other.position)
             other.make_move_list(game.board, user.position)
 
-            if game.move_other:
-                game.unset_move_other()
+            if game.move_everyone:
+                game.unset_move_everyone()
             elif game.twice:
                 game.unset_twice()
             else: 
-                game.unset_move_everyone()
+                game.unset_move_everyone_guard()
+                game.unset_twice_guard()
                 game.count_turn()
             await game.notify_ws()
             return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
@@ -158,7 +159,7 @@ async def wall(
     y = wall_request.y
     wall_type = wall_request.wall_type
 
-    if game.move_everyone:
+    if game.move_everyone_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
     if user.turn:
@@ -173,6 +174,7 @@ async def wall(
             if game.twice:
                 game.unset_twice()
             else: 
+                game.unset_twice_guard()
                 game.count_turn()
 
             await game.notify_ws()
@@ -192,10 +194,10 @@ async def get_wall(
         return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
-    if game.move_everyone:
+    if game.move_everyone_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
-    if game.twice:
+    if game.twice_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
     if user.turn:
@@ -230,10 +232,10 @@ async def break_wall(
     y2 = item_wall_request.y2
     wall_type2 = item_wall_request.wall_type2
 
-    if game.move_everyone:
+    if game.move_everyone_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
-    if game.twice:
+    if game.twice_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
     if user.turn:
@@ -279,10 +281,10 @@ async def replace_wall(
     y2 = item_wall_request.y2
     wall_type2 = item_wall_request.wall_type2
 
-    if game.move_everyone:
+    if game.move_everyone_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
     
-    if game.twice:
+    if game.twice_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
     if user.turn:
@@ -323,10 +325,10 @@ async def twice(
         return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
-    if game.move_everyone:
+    if game.move_everyone_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
     
-    if game.twice:
+    if game.twice_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
     if user.turn:
@@ -351,17 +353,16 @@ async def move_everyone(
         return JSONResponse(content = {"message":""}, status_code=400)
     user = game.get_user(uid)["user"]
 
-    if game.move_everyone:
+    if game.move_everyone_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
     
-    if game.twice:
+    if game.twice_guard:
         return JSONResponse(content = {"message": ""}, status_code = 400)
 
     if user.turn:
         check_item = user.check_item("move_everyone")
         if check_item:
             other_uid = game.get_other_uid(uid)
-            game.set_move_other()
             game.set_move_everyone()
             await move(move_request, bid, other_uid)
             user.remove_item("move_everyone")

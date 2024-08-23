@@ -11,8 +11,9 @@ class Game:
         self.items = {}
         self.item_list = ["get_wall", "break_wall", "replace_wall", "twice", "move_everyone"]
         self.twice = False
-        self.move_other = False
+        self.twice_guard = False
         self.move_everyone = False
+        self.move_everyone_guard = False
 
 
     def put_wall(self, x, y, wall_type, uid = None):
@@ -178,6 +179,8 @@ class Game:
         self.items[(2, 2)] = item[0]
         self.items[(6, 6)] = item[0]
         self.items[(4, 4)] = item[1]
+        self.items[(4, 7)] = "move_everyone"
+        self.items[(4, 6)] = "get_wall"
 
     
     def check_item_position(self, x, y):
@@ -201,23 +204,26 @@ class Game:
 
     def set_twice(self):
         self.twice = True
+        self.twice_guard = True
 
 
     def unset_twice(self):
         self.twice = False
 
+
+    def unset_twice_guard(self):
+        self.twice_guard = False
+
     
-    def set_move_other(self):
-        self.move_other = True
-
-
-    def unset_move_other(self):
-        self.move_other = False
-
-
     def set_move_everyone(self):
         self.move_everyone = True
+        self.move_everyone_guard = True
 
 
     def unset_move_everyone(self):
         self.move_everyone = False
+
+
+    def unset_move_everyone_guard(self):
+        self.move_everyone_guard = False
+
