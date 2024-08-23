@@ -35,6 +35,15 @@ class WallRequest(BaseModel):
     wall_type: str
 
 
+class ItemWallRequest(BaseModel):
+    x1: int
+    y1: int
+    wall_type1: str
+    x2: int
+    y2: int
+    wall_type2: str
+
+
 def gen_uid():
     return os.urandom(32).hex()
 
@@ -55,17 +64,19 @@ async def create(
         new_game = True
     else:
         is_del = game.is_del()
-        if is_del == True:
+        if is_del:
             del games[bid]
             new_game = True
     if new_game:
         game = Game()
+        game.set_item()
         uid = gen_uid()
-        game.uid_link("w", uid, game_request.user_name)
+        game.link_uid("w", uid, game_request.user_name)
         games[bid] = game
         return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 404)
+
 
 @router.post("/join")
 async def join(
@@ -78,9 +89,9 @@ async def join(
     bid = gen_bid(game_request.board_name)
     game = games.get(bid)
     if game is not None:
-        if game.is_start == False:
+        if not game.is_start:
             uid = gen_uid()
-            game.uid_link("b", uid, game_request.user_name)
+            game.link_uid("b", uid, game_request.user_name)
             game.set_is_start()
             await game.notify_ws()
             return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
@@ -101,19 +112,29 @@ async def move(
     user = game.get_user(uid)["user"]
     x = move_request.x
     y = move_request.y
-    if user.turn == True:
+    if user.turn:
         check_move = user.check_move(x,y)
-        if check_move == True:
+        if check_move:
             user.move(x,y)
-            if user.reach_goal() == True:
+            if game.check_item_position(x, y):
+                game.link_item(x, y, uid)
+
+            if user.reach_goal():
                 await game.win(uid)
                 del games[bid]
                 return
-            game.count_turn(uid)
-
+            
             other = game.get_other(uid)["user"]
             other.make_move_list(game.board, user.position)
-
+            
+            if game.move_other:
+                game.unset_move_other()
+            elif game.twice:
+                game.unset_twice()
+            else: 
+                game.count_turn()
+                game.unset_move_everyone()
+        
             await game.notify_ws()
 
 
@@ -129,15 +150,144 @@ async def wall(
     y = wall_request.y
     wall_type = wall_request.wall_type
 
-    if user.turn == True:
+    if user.turn and not game.move_everyone:
         check_wall = game.check_wall(x, y, wall_type, uid)
-        if check_wall == True:
+        if check_wall:
             game.put_wall(x, y, wall_type, uid)
-            game.count_turn(uid)
-
+    
             other = game.get_other(uid)["user"]
             other.make_move_list(game.board, user.position)
+            
+            if game.twice:
+               game.unset_twice()
+            else: 
+                game.count_turn()
 
+            await game.notify_ws()
+
+
+@router.post("/get_wall")
+async def get_wall(
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    user = game.get_user(uid)["user"]
+
+    if user.turn and not game.twice and not game.move_everyone:
+        check_item = user.check_item("get_wall")
+        if check_item:
+            user.add_wall()
+            user.remove_item("get_wall")
+            game.count_turn()
+            
+            await game.notify_ws()
+
+
+@router.post("/break_wall")
+async def break_wall(
+    item_wall_request: ItemWallRequest,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    user = game.get_user(uid)["user"]
+
+    x1 = item_wall_request.x1
+    y1 = item_wall_request.y1
+    wall_type1 = item_wall_request.wall_type1
+    x2 = item_wall_request.x2
+    y2 = item_wall_request.y2
+    wall_type2 = item_wall_request.wall_type2
+
+    if user.turn and not game.twice and not game.move_everyone:
+        check_item = user.check_item("break_wall")
+        if check_item:
+            if game.is_wall(x1, y1, wall_type1) and game.is_wall(x2, y2, wall_type2):
+                game.delete_wall(x1, y1, wall_type1)
+                game.delete_wall(x2, y2, wall_type2)
+                user.remove_item("break_wall")
+
+                other = game.get_other(uid)["user"]
+                other.make_move_list(game.board, user.position)
+
+                game.count_turn()
+            
+                await game.notify_ws()
+
+    
+@router.post("/replace_wall")
+async def replace_wall(
+    item_wall_request: ItemWallRequest,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    user = game.get_user(uid)["user"]
+
+    #移動前
+    x1 = item_wall_request.x1
+    y1 = item_wall_request.y1
+    wall_type1 = item_wall_request.wall_type1
+    #移動後
+    x2 = item_wall_request.x2
+    y2 = item_wall_request.y2
+    wall_type2 = item_wall_request.wall_type2
+
+    if user.turn and not game.twice and not game.move_everyone:
+        check_item = user.check_item("replace_wall")
+        if check_item:
+            if game.is_wall(x1, y1, wall_type1):
+                game.delete_wall(x1, y1, wall_type1)
+                check_wall = game.check_wall(x2, y2, wall_type2, uid)
+                if check_wall:
+                    game.put_wall(x2, y2, wall_type2)
+                    user.remove_item("replace_wall")
+            
+                    other = game.get_other(uid)["user"]
+                    other.make_move_list(game.board, user.position)
+
+                    game.count_turn()
+
+                    await game.notify_ws()
+                else:
+                    game.put_wall(x1, y1, wall_type1)
+
+
+@router.post("/twice")
+async def twice(
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    user = game.get_user(uid)["user"]
+
+    if user.turn and not game.twice and not game.move_everyone:
+        check_item = user.check_item("twice")
+        if check_item:
+            game.set_twice()
+            user.remove_item("twice")
+            await game.notify_ws()
+
+
+
+@router.post("/move_everyone")
+async def move_everyone(
+    move_request: MoveRequest,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    user = game.get_user(uid)["user"]
+
+    if user.turn and not game.twice and not game.move_everyone:
+        check_item = user.check_item("move_everyone")
+        if check_item:
+            other_uid = game.get_other_uid(uid)
+            game.set_move_other()
+            game.set_move_everyone()
+            await move(move_request, bid, other_uid)
+            user.remove_item("move_everyone")
             await game.notify_ws()
 
 
@@ -152,7 +302,7 @@ async def websocket(
     if game is not None:
         if uid in game.users.keys():
             game.set_ws(uid, ws)
-            if game.is_start == True:
+            if game.is_start:
                 await game.notify_ws(uid)
             while True:
                 await asyncio.sleep(10)
@@ -161,7 +311,7 @@ async def websocket(
                 except:
                     game.del_ws(uid)
                     is_del = game.is_del()
-                    if is_del == True:
+                    if is_del:
                         del games[bid]
 
 

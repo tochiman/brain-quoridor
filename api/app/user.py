@@ -9,6 +9,7 @@ class User:
         self.wall = 10
         self.color = color
         self.move_list = []
+        self.items = []
 
         if self.color == "w":
             self.position = (4, 8)
@@ -52,56 +53,72 @@ class User:
 
     def make_move_list_do(self, x, y, board, other_position):
         move_list = []
-        if (not [(x-1, y-1), "h"] in board) and (not [(x, y-1), "h"] in board) and (0 <= x <=8 and 0 <= y-1 <= 8): #up　壁がない
-            if other_position == (x,y-1): #相手の駒がある
-                if (not [(x-1, y-2), "h"] in board) and (not [(x, y-2), "h"] in board) and (0 <= x <=8 and 0 <= y-2 <= 8): #壁がない
-                    move_list.append((x,y-2))
+        if (not [(x-1, y-1), "h"] in board) and (not [(x, y-1), "h"] in board) and (0 <= x <= 8 and 0 <= y-1 <= 8): #up　壁がない
+            if other_position == (x, y-1): #相手の駒がある
+                if (not [(x-1, y-2), "h"] in board) and (not [(x, y-2), "h"] in board) and (0 <= x <= 8 and 0 <= y-2 <= 8): #壁がない
+                    move_list.append((x, y-2))
                 else: #壁がある
                     if (not [(x-1, y-2), "v"] in board) and (not [(x-1, y-1), "v"] in board) and (0 <= x-1 <= 8 and 0 <= y-1 <= 8):
                         move_list.append((x-1, y-1))
                     if (not [(x, y-2), "v"] in board) and (not [(x, y-1), "v"] in board) and (0 <= x+1 <= 8 and 0 <= y-1 <= 8):
                         move_list.append((x+1, y-1))
             else:
-                move_list.append((x,y-1))
+                move_list.append((x, y-1))
 
-        if (not [(x-1, y), "h"] in board) and (not [(x, y), "h"] in board) and (0 <= x <=8 and 0 <= y+1 <= 8): #down
-            if other_position == (x,y+1):
-                if (not [(x-1, y+2), "h"] in board) and (not [(x, y+2), "h"] in board) and (0 <= x <=8 and 0 <= y+2 <= 8): #壁がない
-                    move_list.append((x,y+2))
+        if (not [(x-1, y), "h"] in board) and (not [(x, y), "h"] in board) and (0 <= x <= 8 and 0 <= y+1 <= 8): #down
+            if other_position == (x, y+1):
+                if (not [(x-1, y+2), "h"] in board) and (not [(x, y+2), "h"] in board) and (0 <= x <= 8 and 0 <= y+2 <= 8): #壁がない
+                    move_list.append((x, y+2))
                 else: #壁がある
                     if (not [(x-1, y+2), "v"] in board) and (not [(x-1, y+1), "v"] in board) and (0 <= x-1 <= 8 and 0 <= y+1 <= 8):
                         move_list.append((x-1, y+1))
                     if (not [(x, y+2), "v"] in board) and (not [(x, y+1), "v"] in board) and (0 <= x+1 <= 8 and 0 <= y+1 <= 8):
                         move_list.append((x+1, y+1))
             else:
-                move_list.append((x,y+1))
+                move_list.append((x, y+1))
 
-        if (not [(x-1, y-1), "v"] in board) and (not [(x-1, y), "v"] in board) and (0 <= x-1 <=8 and 0 <= y <= 8): #left
-            if other_position == (x-1,y):
-                if (not [(x-2, y-1), "v"] in board) and (not [(x-2, y), "v"] in board) and (0 <= x-2 <=8 and 0 <= y <= 8): #壁がない
-                    move_list.append((x-2,y))
+        if (not [(x-1, y-1), "v"] in board) and (not [(x-1, y), "v"] in board) and (0 <= x-1 <= 8 and 0 <= y <= 8): #left
+            if other_position == (x-1, y):
+                if (not [(x-2, y-1), "v"] in board) and (not [(x-2, y), "v"] in board) and (0 <= x-2 <= 8 and 0 <= y <= 8): #壁がない
+                    move_list.append((x-2, y))
                 else: #壁がある
                     if (not [(x-2, y-1), "h"] in board) and (not [(x-1, y-1), "h"] in board) and (0 <= x-1 <= 8 and 0 <= y-1 <= 8):
                         move_list.append((x-1, y-1))
                     if (not [(x-2, y), "h"] in board) and (not [(x-1, y), "h"] in board) and (0 <= x-1 <= 8 and 0 <= y+1 <= 8):
                         move_list.append((x-1, y+1))
             else:
-                move_list.append((x-1,y))
+                move_list.append((x-1, y))
 
-        if (not [(x, y-1), "v"] in board) and (not [(x, y), "v"] in board) and (0 <= x+1 <=8 and 0 <= y <= 8): #right
-            if other_position == (x+1,y):
-                if (not [(x+2, y-1), "v"] in board) and (not [(x+2, y), "v"] in board) and (0 <= x+2 <=8 and 0 <= y <= 8): #壁がない
-                    move_list.append((x+2,y))
+        if (not [(x, y-1), "v"] in board) and (not [(x, y), "v"] in board) and (0 <= x+1 <= 8 and 0 <= y <= 8): #right
+            if other_position == (x+1, y):
+                if (not [(x+2, y-1), "v"] in board) and (not [(x+2, y), "v"] in board) and (0 <= x+2 <= 8 and 0 <= y <= 8): #壁がない
+                    move_list.append((x+2, y))
                 else: #壁がある
                     if (not [(x+2, y-1), "h"] in board) and (not [(x+1, y-1), "h"] in board) and (0 <= x+1 <= 8 and 0 <= y-1 <= 8):
                         move_list.append((x+1, y-1))
                     if (not [(x+2, y), "h"] in board) and (not [(x+1, y), "h"] in board) and (0 <= x+1 <= 8 and 0 <= y+1 <= 8):
                         move_list.append((x+1, y+1))
             else:
-                move_list.append((x+1,y))
+                move_list.append((x+1, y))
 
         return move_list
 
 
     def move(self, x, y):
         self.position = (x, y)
+
+
+    def set_item(self, item):
+        self.items.append(item)
+
+    
+    def add_wall(self):
+        self.wall += 2
+
+
+    def check_item(self, item):
+        return item in self.items.keys() 
+
+    
+    def remove_item(self, item):
+        self.items.remove(item)

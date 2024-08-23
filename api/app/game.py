@@ -1,15 +1,22 @@
-from user import User
 from copy import deepcopy
+import random
+
+from user import User
 
 class Game:
     def __init__(self):
         self.board = []
         self.users = {}
         self.is_start = False
+        self.items = {}
+        self.item_list = ["get_wall", "break_wall", "replace_wall", "twice", "move_everyone"]
+        self.twice = False
+        self.move_other = False
+        self.move_everyone = False
 
 
     def put_wall(self, x, y, wall_type, uid):
-        self.board.append([(x,y), wall_type])
+        self.board.append([(x, y), wall_type])
         self.users[uid]["user"].wall -= 1
 
 
@@ -21,14 +28,14 @@ class Game:
         if wall_type not in ["v", "h"]:
             return False
         for board in self.board:
-            if board[0] == (x,y):
+            if board[0] == (x, y):
                 return False
             if board[1] == wall_type:
                 if wall_type == "h":
-                    if board[0] == (x+1,y) or board[0] == (x-1, y):
+                    if board[0] == (x+1, y) or board[0] == (x-1, y):
                         return False
                 elif wall_type == "v":
-                    if board[0] == (x,y+1) or board[0] == (x,y-1):
+                    if board[0] == (x, y+1) or board[0] == (x, y-1):
                         return False
 
         return self.bfs(x, y, wall_type)
@@ -71,12 +78,19 @@ class Game:
         return other
 
 
-    def count_turn(self, uid):
-        user = self.get_user(uid)["user"]
-        other = self.get_other(uid)["user"]
+    def get_other_uid(self, uid):
+        other_uid = ""
+        for _uid in self.users.keys():
+            if _uid == uid:
+                continue
+            other_uid = _uid
+        return other_uid
 
-        user.count_turn()
-        other.count_turn()
+
+    def count_turn(self):
+        for _user in self.users.values():
+            user = _user["user"]
+            user.count_turn()
 
 
     async def win(self, uid):
@@ -87,7 +101,7 @@ class Game:
         await other.send_json({"message":"敗北..."})
 
 
-    def uid_link(self, color, uid, user_name):
+    def link_uid(self, color, uid, user_name):
         self.users[uid] = {"user_name": user_name, "user": User(color), "ws": None}
 
 
@@ -105,7 +119,7 @@ class Game:
                 user = _user["user"]
                 _other = self.get_other(_uid)
                 other = _other["user"]
-                if user.turn == True:
+                if user.turn:
                     await ws.send_json({
                         "name": _user["user_name"],
                         "other_name": _other["user_name"],
@@ -116,7 +130,10 @@ class Game:
                         "other_wall": other.wall,
                         "color": user.color,
                         "move_list": user.move_list,
-                        "board": self.board
+                        "board": self.board,
+                        "item_position": self.items.keys(),
+                        "item": user.items,
+                        "other_item": other.items
                         })
                 else:
                     await ws.send_json({
@@ -128,7 +145,10 @@ class Game:
                         "wall": user.wall,
                         "other_wall": other.wall,
                         "color": user.color,
-                        "board": self.board
+                        "board": self.board,
+                        "item_position": self.items.keys(),
+                        "item": user.items,
+                        "other_item": other.items
                         })
 
 
@@ -150,3 +170,52 @@ class Game:
             return True
         return False
 
+
+    def set_item(self):
+        item = random.sample(self.item_list, 2)
+        self.items[(2, 2)] = item[0]
+        self.items[(6, 6)] = item[0]
+        self.items[(4, 4)] = item[1]
+
+    
+    def check_item_position(self, x, y):
+        return (x, y) in self.items.keys()
+
+    
+    def link_item(self, x, y, uid):
+        user = self.get_user(uid)["user"]
+        item = self.items[(x, y)]
+        user.set_item(item)
+        del self.items[(x, y)]
+
+
+    def is_wall(self, x, y, wall_type):
+        return [(x, y), wall_type] in self.board
+
+
+    def delete_wall(self, x, y, wall_type):
+        self.board.remove([(x, y), wall_type])
+
+
+    def set_twice(self):
+        self.twice = True
+
+
+    def unset_twice(self):
+        self.twice = False
+
+    
+    def set_move_other(self):
+        self.move_other = True
+
+
+    def unset_move_other(self):
+        self.move_other = False
+
+
+    def set_move_everyone(self):
+        self.move_everyone = True
+
+
+    def unset_move_everyone(self):
+        self.move_everyone = False
