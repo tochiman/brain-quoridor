@@ -292,7 +292,7 @@ async def replace_wall(
         if check_item:
             if game.is_wall(x1, y1, wall_type1):
                 game.delete_wall(x1, y1, wall_type1)
-                check_wall = game.check_wall(x2, y2, wall_type2, uid)
+                check_wall = game.check_wall(x2, y2, wall_type2)
                 if check_wall:
                     game.put_wall(x2, y2, wall_type2)
                     user.remove_item("replace_wall")

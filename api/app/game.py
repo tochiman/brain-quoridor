@@ -22,9 +22,10 @@ class Game:
             self.users[uid]["user"].wall -= 1
 
 
-    def check_wall(self, x, y, wall_type, uid):
-        if self.users[uid]["user"].wall == 0:
-            return False
+    def check_wall(self, x, y, wall_type, uid = None):
+        if uid is not None:
+            if self.users[uid]["user"].wall == 0:
+                return False
         if not (0 <= x <= 7 and 0 <= y <= 7):
             return False
         if wall_type not in ["v", "h"]:
@@ -179,8 +180,6 @@ class Game:
         self.items[(2, 2)] = item[0]
         self.items[(6, 6)] = item[0]
         self.items[(4, 4)] = item[1]
-        self.items[(4, 7)] = "move_everyone"
-        self.items[(4, 6)] = "get_wall"
 
     
     def check_item_position(self, x, y):
