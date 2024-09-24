@@ -2,7 +2,7 @@ import os
 import base64
 import asyncio
 
-from fastapi import FastAPI, APIRouter, Cookie, WebSocket
+from fastapi import FastAPI, APIRouter, Cookie, WebSocket, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -73,7 +73,10 @@ async def create(
         uid = gen_uid()
         game.link_uid("w", uid, game_request.user_name)
         games[bid] = game
-        return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
+        response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
+        response.set_cookie(key="bid", value=bid)
+        response.set_cookie(key="uid", value=uid)
+        return response
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 400)
 
@@ -94,10 +97,14 @@ async def join(
             game.link_uid("b", uid, game_request.user_name)
             game.set_is_start()
             await game.notify_ws()
-            return JSONResponse(content = {"bid": bid, "uid": uid}, status_code = 200)
+
+            response = JSONResponse(content = {"message": "参加しました"}, status_code = 200)
+            response.set_cookie(key="bid", value=bid)
+            response.set_cookie(key="uid", value=uid)
+            return response
         else:
-            if bid == cbid and uid in game.users.keys():
-                return JSONResponse(content = {"bid": cbid, "uid": cuid}, status_code = 200)
+            if bid == cbid and cuid in game.users.keys():
+                return JSONResponse(content = {"message": "参加しました"}, status_code = 200)
 
     return JSONResponse(content = {"message": "ゲームに参加できません"}, status_code = 400)
 

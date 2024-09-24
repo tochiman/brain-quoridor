@@ -21,9 +21,7 @@
 			})
 			.then(response => response.json())
 			.then(data => {
-				document.cookie=`bid=${data.bid}`
-				document.cookie=`uid=${data.uid}`
-				console.log(data);
+				console.log(data)
 			})
 			.catch(error => {console.error('Error:', error)});
 		}
@@ -45,9 +43,7 @@
 			})
 			.then(response => response.json())
 			.then(data => {
-				document.cookie=`bid=${data.bid}`
-				document.cookie=`uid=${data.uid}`
-				console.log(data);
+				console.log(data)
 			})
 			.catch(error => console.error('Error:', error));
 		}
