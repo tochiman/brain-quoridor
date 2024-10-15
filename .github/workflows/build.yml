@@ -36,7 +36,7 @@ jobs:
       - name: Build and push images
         uses: docker/build-push-action@v5
         with:
-          context: ./nginx
+          context: nginx
           file: Dockerfile
           target: ${{ env.REPOSITORY }}
           push: true
