@@ -30,75 +30,89 @@ jobs:
           username: ${{ env.USER }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up buildx
-        uses: docker/setup-buildx-action@v2
-
-
-      - name: Build and push images
-        uses: docker/build-push-action@v5
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v3
         with:
-          context: .
-          file: ./nginx/Dockerfile
-          target: ${{ env.REPOSITORY }}
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_NGINX }}:${{ github.ref_name }} 
+          buildx-version: latest
+          qemu-version: latest
 
-  api-build-and-push:
-    runs-on: arc-brain-quoridor
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Build and Publish
+        run: |
+          docker buildx build \
+            --push \
+            --platform linux/arm/v7,linux/amd64 \
+            -t ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_NGINX }}:${{ github.ref_name }} .
 
-      - name: Login to Github Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ env.USER }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Set up buildx
+      #   uses: docker/setup-buildx-action@v2
+      #
+      #
+      # - name: Build and push images
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: ./nginx/Dockerfile
+      #     target: ${{ env.REPOSITORY }}
+      #     push: true
+      #     tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_NGINX }}:${{ github.ref_name }} 
 
-      - name: Set up buildx
-        uses: docker/setup-buildx-action@v2
-
-
-      - name: Build and push images
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./front/Dockerfile
-          target: ${{ env.REPOSITORY }}
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_API }}:${{ github.ref_name }} 
-
-
-  front-build-and-push:
-    runs-on: arc-brain-quoridor
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Login to Github Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ env.USER }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up buildx
-        uses: docker/setup-buildx-action@v2
-
-
-      - name: Build and push images
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./front/Dockerfile
-          target: ${{ env.REPOSITORY }}
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_FRONT }}:${{ github.ref_name }} 
-
+  # api-build-and-push:
+  #   runs-on: arc-brain-quoridor
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Login to Github Container Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ env.USER }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #
+  #     - name: Set up buildx
+  #       uses: docker/setup-buildx-action@v2
+  #
+  #
+  #     - name: Build and push images
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         file: ./front/Dockerfile
+  #         target: ${{ env.REPOSITORY }}
+  #         push: true
+  #         tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_API }}:${{ github.ref_name }} 
+  #
+  #
+  # front-build-and-push:
+  #   runs-on: arc-brain-quoridor
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Login to Github Container Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ env.USER }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #
+  #     - name: Set up buildx
+  #       uses: docker/setup-buildx-action@v2
+  #
+  #
+  #     - name: Build and push images
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         file: ./front/Dockerfile
+  #         target: ${{ env.REPOSITORY }}
+  #         push: true
+  #         tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_FRONT }}:${{ github.ref_name }} 
+  #
