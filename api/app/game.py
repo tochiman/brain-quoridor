@@ -14,6 +14,7 @@ class Game:
         self.twice_guard = False
         self.move_everyone = False
         self.move_everyone_guard = False
+        self.turn_guard = False
 
 
     def put_wall(self, x, y, wall_type, uid = None):
@@ -69,16 +70,8 @@ class Game:
 
 
     def get_other(self, uid):
-        users = []
-        for user in self.users.values():
-            users.append(user)
-        for index, _user in enumerate(users):
-            user = _user["user"]
-            if uid is not None :
-                if self.users[uid]["user"] != user:
-                    continue
-            other = users[(index+1) % 2]
-        return other
+        uid = self.get_other_uid(uid)
+        return self.users[uid]
 
 
     def get_other_uid(self, uid):
@@ -226,3 +219,10 @@ class Game:
     def unset_move_everyone_guard(self):
         self.move_everyone_guard = False
 
+
+    def set_turn_guard(self):
+        self.move_everyone_guard = True
+
+
+    def unset_turn_guard(self):
+        self.move_everyone_guard = False

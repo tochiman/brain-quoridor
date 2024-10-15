@@ -1,9 +1,11 @@
 import os
 import base64
 import asyncio
+import datetime
 
 from fastapi import FastAPI, APIRouter, Cookie, WebSocket, Response
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from game import Game
@@ -17,6 +19,15 @@ root = os.getenv('ROOT_PATH')
 
 app = FastAPI()
 router = APIRouter(prefix=root)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://quoridor.k175.net", "http://192.168.100.170"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
+
 
 games = {}
 class GameRequest(BaseModel):
@@ -74,8 +85,9 @@ async def create(
         game.link_uid("w", uid, game_request.user_name)
         games[bid] = game
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
-        response.set_cookie(key="bid", value=bid)
-        response.set_cookie(key="uid", value=uid)
+        expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+        response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
         return response
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 400)
@@ -99,8 +111,9 @@ async def join(
             await game.notify_ws()
 
             response = JSONResponse(content = {"message": "参加しました"}, status_code = 200)
-            response.set_cookie(key="bid", value=bid)
-            response.set_cookie(key="uid", value=uid)
+            expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+            response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
             return response
         else:
             if bid == cbid and cuid in game.users.keys():
@@ -121,7 +134,8 @@ async def move(
     user = game.get_user(uid)["user"]
     x = move_request.x
     y = move_request.y
-    if user.turn or game.move_everyone:
+    if (user.turn and not game.turn_guard) or game.move_everyone:
+        game.set_turn_guard()
         check_move = user.check_move(x,y)
         if check_move:
             user.move(x,y)
@@ -141,13 +155,16 @@ async def move(
                 game.unset_move_everyone()
             elif game.twice:
                 game.unset_twice()
+                game.unset_turn_guard()
             else: 
                 game.unset_move_everyone_guard()
                 game.unset_twice_guard()
                 game.count_turn()
+                game.unset_turn_guard()
             await game.notify_ws()
             return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
         else:
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "その場所に動くことはできません"}, status_code = 400)
     return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
 
@@ -169,7 +186,8 @@ async def wall(
     if game.move_everyone_guard:
         return JSONResponse(content = {"message": "このアイテム使用中は駒を動かすことしかできません"}, status_code = 400)
 
-    if user.turn:
+    if user.turn and not game.turn_guard:
+        game.set_turn_guard()
         check_wall = game.check_wall(x, y, wall_type, uid)
         if check_wall:
             game.put_wall(x, y, wall_type, uid)
@@ -184,9 +202,11 @@ async def wall(
                 game.unset_twice_guard()
                 game.count_turn()
 
+            game.unset_turn_guard()
             await game.notify_ws()
             return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
         else:
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "その場所に壁を置けません"}, status_code = 400)
     return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
 
@@ -207,7 +227,8 @@ async def get_wall(
     if game.twice_guard:
         return JSONResponse(content = {"message": "このアイテム使用中はアイテムの使用ができません"}, status_code = 400)
 
-    if user.turn:
+    if user.turn and not game.turn_guard:
+        game.set_turn_guard()
         check_item = user.check_item("get_wall")
         if check_item:
             user.add_wall()
@@ -215,15 +236,17 @@ async def get_wall(
             game.count_turn()
             
             await game.notify_ws()
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
         else:
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "このアイテムは使えません"}, status_code = 400)
     return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
 
 
 @router.post("/break_wall")
 async def break_wall(
-    item_wall_request: ItemWallRequest,
+    wall_request: WallRequest,
     bid: str | None = Cookie(default = None),
     uid: str | None = Cookie(default = None)
     ):
@@ -232,12 +255,9 @@ async def break_wall(
         return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
     user = game.get_user(uid)["user"]
 
-    x1 = item_wall_request.x1
-    y1 = item_wall_request.y1
-    wall_type1 = item_wall_request.wall_type1
-    x2 = item_wall_request.x2
-    y2 = item_wall_request.y2
-    wall_type2 = item_wall_request.wall_type2
+    x = wall_request.x
+    y = wall_request.y
+    wall_type = wall_request.wall_type
 
     if game.move_everyone_guard:
         return JSONResponse(content = {"message": "このアイテム使用中は駒を動かすことしかできません"}, status_code = 400)
@@ -245,12 +265,12 @@ async def break_wall(
     if game.twice_guard:
         return JSONResponse(content = {"message": "このアイテム使用中はアイテムの使用ができません"}, status_code = 400)
 
-    if user.turn:
+    if user.turn and not game.turn_guard:
+        game.set_turn_guard()
         check_item = user.check_item("break_wall")
         if check_item:
-            if game.is_wall(x1, y1, wall_type1) and game.is_wall(x2, y2, wall_type2):
-                game.delete_wall(x1, y1, wall_type1)
-                game.delete_wall(x2, y2, wall_type2)
+            if game.is_wall(x, y, wall_type):
+                game.delete_wall(x, y, wall_type)
                 user.remove_item("break_wall")
 
                 other = game.get_other(uid)["user"]
@@ -260,10 +280,13 @@ async def break_wall(
                 game.count_turn()
             
                 await game.notify_ws()
+                game.unset_turn_guard()
                 return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
             else:
+                game.unset_turn_guard()
                 return JSONResponse(content = {"message": "壁は存在しません"}, status_code = 400)
         else:
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "このアイテムは使えません"}, status_code = 400)
     return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
 
@@ -294,7 +317,8 @@ async def replace_wall(
     if game.twice_guard:
         return JSONResponse(content = {"message": "このアイテム使用中はアイテムの使用ができません"}, status_code = 400)
 
-    if user.turn:
+    if user.turn and not game.turn_guard:
+        game.set_turn_guard()
         check_item = user.check_item("replace_wall")
         if check_item:
             if game.is_wall(x1, y1, wall_type1):
@@ -311,13 +335,17 @@ async def replace_wall(
                     game.count_turn()
 
                     await game.notify_ws()
+                    game.unset_turn_guard()
                     return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
                 else:
                     game.put_wall(x1, y1, wall_type1)
+                    game.unset_turn_guard()
                     return JSONResponse(content = {"message": "その場所に壁は置けません"}, status_code = 400)
             else:
+                game.unset_turn_guard()
                 return JSONResponse(content = {"message": "壁が存在しません"}, status_code = 400)
         else:
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "このアイテムは使えません"}, status_code = 400)
     return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
 
@@ -338,13 +366,16 @@ async def twice(
     if game.twice_guard:
         return JSONResponse(content = {"message": "このアイテム使用中はアイテムの使用ができません"}, status_code = 400)
 
-    if user.turn:
+    if user.turn and not game.turn_guard:
+        game.set_turn_guard()
         check_item = user.check_item("twice")
         if check_item:
             game.set_twice()
             user.remove_item("twice")
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
         else:
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "このアイテムは使えません"}, status_code = 400)
     return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
 
@@ -366,15 +397,18 @@ async def move_everyone(
     if game.twice_guard:
         return JSONResponse(content = {"message": "このアイテム使用中はアイテムの使用ができません"}, status_code = 400)
 
-    if user.turn:
+    if user.turn and not game.turn_guard:
+        game.set_turn_guard()
         check_item = user.check_item("move_everyone")
         if check_item:
             other_uid = game.get_other_uid(uid)
             game.set_move_everyone()
             await move(move_request, bid, other_uid)
             user.remove_item("move_everyone")
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
         else:
+            game.unset_turn_guard()
             return JSONResponse(content = {"message": "このアイテムは使えません"}, status_code = 400)
     return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
 
