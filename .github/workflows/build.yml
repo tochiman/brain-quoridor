@@ -35,14 +35,15 @@ jobs:
 
       - name: Display Directory
         run: |
-          ls;
-          ls nginx
+          ls -lash;
+          echo "------------";
+          ls -lash nginx;
 
       - name: Build and push images
         uses: docker/build-push-action@v5
         with:
-          context: nginx
-          file: Dockerfile
+          context: ./nginx
+          file: ./nginx/Dockerfile
           target: ${{ env.REPOSITORY }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_NGINX }}:${{ github.ref_name }} 
