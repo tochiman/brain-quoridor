@@ -37,66 +37,66 @@ jobs:
         working-directory: ./nginx
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Dockerfile
+          context: ./nginx
+          file: ./nginx/Dockerfile
           target: ${{ env.REPOSITORY }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_NGINX }}:${{ github.ref_name }} 
 
-  # api-build-and-push:
-  #   runs-on: arc-brain-quoridor
-  #   permissions:
-  #     contents: read
-  #     packages: write
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Login to Github Container Registry
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ${{ env.REGISTRY }}
-  #         username: ${{ env.USER }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #
-  #     - name: Set up buildx
-  #       uses: docker/setup-buildx-action@v2
-  #
-  #     - name: Build and push images
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         file: Dockerfile
-  #         target: ${{ env.REPOSITORY }}
-  #         push: true
-  #         tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_API }}:${{ github.ref_name }} 
-  #
-  #
-  # front-build-and-push:
-  #   runs-on: arc-brain-quoridor
-  #   permissions:
-  #     contents: read
-  #     packages: write
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Login to Github Container Registry
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ${{ env.REGISTRY }}
-  #         username: ${{ env.USER }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #
-  #     - name: Set up buildx
-  #       uses: docker/setup-buildx-action@v2
-  #
-  #     - name: Build and push images
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         file: Dockerfile
-  #         target: ${{ env.REPOSITORY }}
-  #         push: true
-  #         tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_FRONT }}:${{ github.ref_name }} 
-  #
+  api-build-and-push:
+    runs-on: arc-brain-quoridor
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.USER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push images
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          file: ./api/Dockerfile
+          target: ${{ env.REPOSITORY }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_API }}:${{ github.ref_name }} 
+
+
+  front-build-and-push:
+    runs-on: arc-brain-quoridor
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.USER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push images
+        uses: docker/build-push-action@v5
+        with:
+          context: ./front
+          file: ./front/Dockerfile
+          target: ${{ env.REPOSITORY }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_FRONT }}:${{ github.ref_name }} 
+
