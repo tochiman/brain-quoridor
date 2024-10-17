@@ -45,6 +45,7 @@ jobs:
           context: ./nginx
           file: ./nginx/Dockerfile
           target: ${{ env.REPOSITORY }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_NGINX }}:${{ github.ref_name }} 
 
@@ -72,6 +73,7 @@ jobs:
         with:
           context: ./api
           file: ./api/Dockerfile
+          platforms: linux/amd64,linux/arm64
           target: ${{ env.REPOSITORY }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_API }}:${{ github.ref_name }} 
@@ -101,6 +103,7 @@ jobs:
         with:
           context: ./front
           file: ./front/Dockerfile
+          platforms: linux/amd64,linux/arm64
           target: ${{ env.REPOSITORY }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_FRONT }}:${{ github.ref_name }} 
