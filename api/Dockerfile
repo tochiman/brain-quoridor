@@ -1,10 +1,14 @@
 FROM python:3.12-slim
 
-WORKDIR /appFROM python:3.12-slim
+ENV ROOT_PATH=/api
 
+EXPOSE 8080
 WORKDIR /app
 
-ADD ./requirements.txt /app/requirements.txt
+COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
+
 COPY ./app/* ./
+
+CMD ["uvicorn", "main:app", "--reload", "--host 0.0.0.0", "--port","8080"]
