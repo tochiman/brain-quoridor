@@ -2,9 +2,7 @@ services:
   front:
     init: true
     container_name: brain_quoridor_front
-    build:
-      context: ./front
-      dockerfile: Dockerfile
+    image: ghcr.io/tochiman/brain-quoridor/front-image:main
     user: node
     ports:
     - 3000:3000
@@ -20,9 +18,7 @@ services:
 
   api:
     container_name: brain_quoridor_api
-    build:
-      context: ./api
-      dockerfile: Dockerfile
+    image: ghcr.io/tochiman/brain-quoridor/api-image:main
     expose:
       - 8080
     volumes:
@@ -36,14 +32,11 @@ services:
 
   nginx:
     container_name: brain_quoridor_nginx
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: ghcr.io/tochiman/brain-quoridor/nginx-image:main
     ports:
       - 80:80
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/html:/var/www/html/
     depends_on:
       - front
       - api
