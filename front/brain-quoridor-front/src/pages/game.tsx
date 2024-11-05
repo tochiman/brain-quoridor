@@ -14,12 +14,14 @@ function range(start: number, end: number): number[] {
 export default function Home() {
   const [hoveredRowId, setHoveredRowId] = useState<number>(0);
   const [hoveredColId, setHoveredColId] = useState<number>(0);
+  const [hoverednextColId, setHoverednextColId] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
   const maxCol = 9;
 
-  const handleMouseEnter = (bannmenRowId:number, bannmenColId:number) => {
+  const handleMouseEnter = (bannmenRowId:number, bannmenColId:number, nextbannmenColId:number) => {
     setHoveredRowId(bannmenRowId);
     setHoveredColId(bannmenColId);
+    setHoverednextColId(nextbannmenColId);
     setHovered(true);
   };
   const handleMouseLeave = () => {
@@ -31,6 +33,7 @@ export default function Home() {
   interface LightSpacingWallProps extends PaperProps  {
     bannmenRowId: number;
     bannmenColId: number;
+    nextbannmenColId: number;
   }
   interface StraightSpacingWallProps extends PaperProps  {
     bannmenRowId: number;
@@ -39,10 +42,10 @@ export default function Home() {
 
   // palette作った方がいいよ
   const LightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
-  })<LightSpacingWallProps>(({ bannmenRowId, bannmenColId }) => ({
-    backgroundColor: hovered && bannmenRowId === hoveredRowId &&  (bannmenColId === hoveredColId || bannmenColId === hoveredColId+1 ) 
-    ? bannmenColId+1 <= 17 
-    ? "#3c3c3c" : "#ffa5a5" : "#ffa5a5" ,
+  })<LightSpacingWallProps>(({ bannmenRowId, bannmenColId, nextbannmenColId }) => ({
+    backgroundColor: hovered && bannmenRowId === hoveredRowId &&  bannmenColId === hoveredColId && nextbannmenColId === hoverednextColId
+    
+    ? "#3c3c3c" : "#ffa5a5"  ,
 }))
 const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
 })<StraightSpacingWallProps>(({ bannmenRowId, bannmenColId }) => ({
@@ -76,8 +79,9 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                               <LightSpacingWall 
                               bannmenRowId={row}
                               bannmenColId={col}
+                              nextbannmenColId={col+1}
                               className={styles.banmeLightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col)}
+                              onMouseEnter={() => handleMouseEnter(row, col, col+1)}
                               onMouseLeave={handleMouseLeave}
                               >
                               </LightSpacingWall>
@@ -92,8 +96,9 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                               <LightSpacingWall 
                               bannmenRowId={row}
                               bannmenColId={col}
+                              nextbannmenColId={col+1}
                               className={styles.banmeLightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col)}
+                              onMouseEnter={() => handleMouseEnter(row, col, col+1)}
                               onMouseLeave={handleMouseLeave}
                               >
                               </LightSpacingWall>
@@ -113,7 +118,7 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                               bannmenRowId={row}
                               bannmenColId={col}
                               className={styles.banmeStraightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col)}
+                              onMouseEnter={() => handleMouseEnter(row, col, col+1)}
                               onMouseLeave={handleMouseLeave}
                               >
                               </StraightSpacingWall>
