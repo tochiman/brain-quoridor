@@ -1,0 +1,60 @@
+services:
+  front:
+    init: true
+    container_name: brain_quoridor_front
+    image: ghcr.io/tochiman/brain-quoridor/front-image:main
+    user: node
+    ports:
+    - 3000:3000
+    volumes:
+      - ./front/brain-quoridor-front:/home/node/app
+    tty: true
+    environment:
+      - WATCHPACK_POLLING=true
+    command: "yarn dev"
+    restart: always
+    networks:
+      - front
+
+  api:
+    container_name: brain_quoridor_api
+    image: ghcr.io/tochiman/brain-quoridor/api-image:main
+    expose:
+      - 8080
+    volumes:
+      - ./api/app:/app
+    environment:
+      - ROOT_PATH=/api
+    command: "uvicorn main:app --reload --host 0.0.0.0 --port 8080"
+    restart: always
+    networks:
+      - api
+
+  nginx:
+    container_name: brain_quoridor_nginx
+    image: ghcr.io/tochiman/brain-quoridor/nginx-image:main
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - front
+      - api
+    restart: always
+    networks:
+      - front
+      - api
+
+networks:
+  front:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.25.0/24
+  api:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.26.0/24
