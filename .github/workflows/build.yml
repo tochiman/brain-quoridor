@@ -19,7 +19,7 @@ env:
 
 jobs:
   nginx-build-and-push:
-    runs-on: arc-brain-quoridor
+    runs-on: arc-brain-quoridor-arm64
     permissions:
       contents: read
       packages: write
