@@ -88,7 +88,13 @@ jobs:
         echo '  make bootstrap'
         echo '  make release'
         exit 1
-
+    - name: Debug Info
+      run: |
+        pwd
+        ls -la
+        npm --version
+        node --version
+        
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
