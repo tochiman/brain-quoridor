@@ -6,6 +6,10 @@ on:
       - main
       - dev
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   USER: tochiman
@@ -15,7 +19,7 @@ env:
 
 jobs:
   nginx-build-and-push:
-    runs-on: arc-brain-quoridor
+    runs-on: arc-brain-quoridor-arm64
     permissions:
       contents: read
       packages: write
@@ -96,7 +100,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./front
-          file: ./front/Dockerfile
+          file: ./front/Dockerfile.prod
           platforms: linux/amd64,linux/arm64
           target: ${{ env.REPOSITORY }}
           push: true
