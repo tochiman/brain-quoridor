@@ -11,22 +11,25 @@ function range(start: number, end: number): number[] {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 }
 
-export default function Home() {
+export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const [hoveredRowId, setHoveredRowId] = useState<number>(0);
   const [hoveredColId, setHoveredColId] = useState<number>(0);
   const [hoverednextColId, setHoverednextColId] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
-  const maxCol = 9;
 
   const handleMouseEnter = (bannmenRowId:number, bannmenColId:number, nextbannmenColId:number) => {
     setHoveredRowId(bannmenRowId);
     setHoveredColId(bannmenColId);
     setHoverednextColId(nextbannmenColId);
+    if (nextbannmenColId==10){
+      setHoveredColId(0); //端が光らないように
+    }
     setHovered(true);
   };
   const handleMouseLeave = () => {
     setHoveredRowId(0);
     setHoveredColId(0);
+    setHoverednextColId(0);
     setHovered(false);
   }
 
@@ -43,8 +46,7 @@ export default function Home() {
   // palette作った方がいいよ
   const LightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
   })<LightSpacingWallProps>(({ bannmenRowId, bannmenColId, nextbannmenColId }) => ({
-    backgroundColor: hovered && bannmenRowId === hoveredRowId &&  bannmenColId === hoveredColId && nextbannmenColId === hoverednextColId
-    
+    backgroundColor: hovered && bannmenRowId === hoveredRowId && bannmenColId === hoveredColId && nextbannmenColId == hoverednextColId
     ? "#3c3c3c" : "#ffa5a5"  ,
 }))
 const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
