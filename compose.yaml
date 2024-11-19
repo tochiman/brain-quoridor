@@ -14,7 +14,6 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: "yarn dev"
-    restart: always
     networks:
       - front
 
@@ -30,7 +29,6 @@ services:
     environment:
       - ROOT_PATH=/api
     command: "uvicorn main:app --reload --host 0.0.0.0 --port 8080"
-    restart: always
     networks:
       - api
 
@@ -43,10 +41,10 @@ services:
       - 80:80
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/html:/var/www/html/
     depends_on:
       - front
       - api
-    restart: always
     networks:
       - front
       - api
