@@ -4,8 +4,8 @@ services:
     container_name: brain_quoridor_front
     image: ghcr.io/tochiman/brain-quoridor/front-image:main
     user: node
-    ports:
-    - 3000:3000
+    expose:
+      - 3000
     volumes:
       - ./front/brain-quoridor-front:/home/node/app
     tty: true
