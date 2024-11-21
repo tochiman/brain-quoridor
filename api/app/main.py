@@ -86,8 +86,8 @@ async def create(
         games[bid] = game
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
         expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
-        response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
-        response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='Strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='Strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
         return response
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 400)
@@ -112,8 +112,8 @@ async def join(
 
             response = JSONResponse(content = {"message": "参加しました"}, status_code = 200)
             expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
-            response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
-            response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='none', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='Strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='Strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
             return response
         else:
             if bid == cbid and cuid in game.users.keys():
