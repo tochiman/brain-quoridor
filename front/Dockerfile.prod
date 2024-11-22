@@ -1,0 +1,46 @@
+FROM node:18.18.0-alpine AS base
+#### stage dependencies ####
+FROM base AS deps
+
+WORKDIR /app
+
+COPY brain-quoridor-front/package.json brain-quoridor-front/yarn.lock ./
+
+RUN apk update && apk add --no-cache libc6-compat
+RUN yarn install  --frozen-lockfile --no-progress --network-timeout 1000000
+
+#### stage build ####
+FROM base AS builder
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY brain-quoridor-front/* .
+
+RUN yarn build
+
+#### stage runner ####
+FROM base AS runner
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY ./brain-quoridor-front/public ./public
+COPY ./brain-quoridor-front/next.config.mjs ./
+
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/ ./
+
+USER nextjs
+
+EXPOSE 3000
+ENV PORT=3000
+
+CMD ["yarn", "start"]
