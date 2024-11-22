@@ -15,14 +15,19 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const [hoveredRowId, setHoveredRowId] = useState<number>(0);
   const [hoveredColId, setHoveredColId] = useState<number>(0);
   const [hoverednextColId, setHoverednextColId] = useState<number>(0);
+  const [hoverednextRowId, setHoverednextRowId] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
 
-  const handleMouseEnter = (bannmenRowId:number, bannmenColId:number, nextbannmenColId:number) => {
+  const handleMouseEnter = (bannmenRowId:number, bannmenColId:number, nextbannmenColId:number, nextbannmenRowId: number) => {
     setHoveredRowId(bannmenRowId);
     setHoveredColId(bannmenColId);
     setHoverednextColId(nextbannmenColId);
+    setHoverednextColId(nextbannmenRowId);
     if (nextbannmenColId==10){
-      setHoveredColId(0); //端が光らないように
+      setHoveredColId(-1); //端が光らないように
+    }
+    if (nextbannmenRowId==19){
+      setHoveredRowId(0); //端が光らないように
     }
     setHovered(true);
   };
@@ -30,6 +35,7 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
     setHoveredRowId(0);
     setHoveredColId(0);
     setHoverednextColId(0);
+    setHoverednextRowId(0);
     setHovered(false);
   }
 
@@ -37,21 +43,29 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
     bannmenRowId: number;
     bannmenColId: number;
     nextbannmenColId: number;
+    nextbannmenRowId: number;
   }
   interface StraightSpacingWallProps extends PaperProps  {
     bannmenRowId: number;
     bannmenColId: number;
+    nextbannmenColId: number;
+    nextbannmenRowId: number;
   }
 
   // palette作った方がいいよ
   const LightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
-  })<LightSpacingWallProps>(({ bannmenRowId, bannmenColId, nextbannmenColId }) => ({
-    backgroundColor: hovered && bannmenRowId === hoveredRowId && bannmenColId === hoveredColId && nextbannmenColId == hoverednextColId
-    ? "#3c3c3c" : "#ffa5a5"  ,
+  })<LightSpacingWallProps>(({ bannmenRowId, bannmenColId }) => ({
+    backgroundColor: hovered && bannmenRowId === hoveredRowId &&  (bannmenColId === hoveredColId || bannmenColId === hoveredColId+1 ) 
+    ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)"  ,
+    transition: 'background-color 9ms',
+    transitionDelay: '9ms',
 }))
 const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
 })<StraightSpacingWallProps>(({ bannmenRowId, bannmenColId }) => ({
-  backgroundColor: hovered && (bannmenRowId === hoveredRowId || bannmenRowId === hoveredRowId+2) && bannmenColId === hoveredColId ? "#3c3c3c" : "#ffa5a5",
+  backgroundColor: hovered && (bannmenRowId === hoveredRowId || bannmenRowId === hoveredRowId+2) && bannmenColId === hoveredColId 
+  ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)",
+  transition: 'background-color 9ms',
+  transitionDelay: '9ms',
 }))
 
     return (
@@ -82,8 +96,9 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                               bannmenRowId={row}
                               bannmenColId={col}
                               nextbannmenColId={col+1}
+                              nextbannmenRowId={row}
                               className={styles.banmeLightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col, col+1)}
+                              onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
                               onMouseLeave={handleMouseLeave}
                               >
                               </LightSpacingWall>
@@ -99,8 +114,9 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                               bannmenRowId={row}
                               bannmenColId={col}
                               nextbannmenColId={col+1}
+                              nextbannmenRowId={row}
                               className={styles.banmeLightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col, col+1)}
+                              onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
                               onMouseLeave={handleMouseLeave}
                               >
                               </LightSpacingWall>
@@ -119,8 +135,10 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                               <StraightSpacingWall 
                               bannmenRowId={row}
                               bannmenColId={col}
+                              nextbannmenColId={col}
+                              nextbannmenRowId={row+2}
                               className={styles.banmeStraightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col, col+1)}
+                              onMouseEnter={() => handleMouseEnter(row, col, col, row+2)}
                               onMouseLeave={handleMouseLeave}
                               >
                               </StraightSpacingWall>
