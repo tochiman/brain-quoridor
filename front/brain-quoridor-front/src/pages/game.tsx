@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { styled } from"@mui/material/styles";
-import React, {HTMLAttributes, useState} from "react";
+import React, {HTMLAttributes, useState, useEffect, useRef} from "react";
 import { Grid, Paper, PaperProps, Typography } from "@mui/material";
 import Head from "next/head";
 import { light } from "@mui/material/styles/createPalette";
@@ -68,6 +68,59 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
   transitionDelay: '9ms',
 }))
 
+useEffect(() => {
+  const url = 'api/create'
+  const board = "test"
+  const user = "users"
+  const postData = {
+    board_name: board,
+    user_name: user
+  };
+  const Options = {
+    method: 'POST',
+    headers: {
+      "Content-Type": 'application/json'
+    },
+    body: JSON.stringify(postData)
+  }
+  fetch(url, Options)
+  .then((response) => {
+    try{
+      if (response.status == 200){
+        console.log(response.json())
+        return response.json()
+      } else {
+        // setAlertAny(true)
+      }
+    } finally{
+    //   const AlertAnySnack = () => setAlertAny(false)
+    //   setTimeout( AlertAnySnack, 3200)
+    }
+  })
+  .catch(err => console.log(err))
+},[])
+
+
+//Websocketの呼び出し
+const socketRef = useRef<WebSocket>()
+const [isConnected, setIsConnected] = useState<boolean>(false)
+
+// useEffect(() => {
+//   socketRef.current = new WebSocket("/api/ws")
+//     socketRef.current.onopen = function () {
+//       socketRef.current?.send(btoa(user + ':' + password))
+//       setIsConnected(true)
+//       console.log('Connected')
+//     }
+
+//     socketRef.current.onclose = function () {
+//       console.log('closed')
+//       setIsConnected(false)
+//     }
+ 
+// },[]
+
+//)
     return (
       <>
         <Head>
