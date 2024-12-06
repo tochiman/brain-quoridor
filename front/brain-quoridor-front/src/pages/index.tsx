@@ -24,6 +24,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Padding } from "@mui/icons-material";
 import { rulesContent } from '../styles/rule.js';
 import { rules_itemContent } from '../styles/rule_item.js';
+import { useForm, SubmitHandler } from "react-hook-form"
 
 
 
