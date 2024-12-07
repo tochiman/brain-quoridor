@@ -12,98 +12,98 @@ function range(start: number, end: number): number[] {
 }
 
 export default function Home() {  //useStateの宣言 ホバーの真偽宣言
-  const [hoveredRowId, setHoveredRowId] = useState<number>(0);
-  const [hoveredColId, setHoveredColId] = useState<number>(0);
-  const [hoverednextColId, setHoverednextColId] = useState<number>(0);
-  const [hoverednextRowId, setHoverednextRowId] = useState<number>(0);
+  const [hoveredrowid, setHoveredrowid] = useState<number>(0);
+  const [hoveredcolid, setHoveredcolid] = useState<number>(0);
+  const [hoverednextcolid, setHoverednextcolid] = useState<number>(0);
+  const [hoverednextrowid, setHoverednextrowid] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
 
-  const handleMouseEnter = (bannmenRowId:number, bannmenColId:number, nextbannmenColId:number, nextbannmenRowId: number) => {
-    setHoveredRowId(bannmenRowId);
-    setHoveredColId(bannmenColId);
-    setHoverednextColId(nextbannmenColId);
-    setHoverednextColId(nextbannmenRowId);
-    if (nextbannmenColId==10){
-      setHoveredColId(-1); //端が光らないように
+  const handleMouseEnter = (bannmenrowid:number, bannmencolid:number, nextbannmencolid:number, nextbannmenrowid: number) => {
+    setHoveredrowid(bannmenrowid);
+    setHoveredcolid(bannmencolid);
+    setHoverednextcolid(nextbannmencolid);
+    setHoverednextcolid(nextbannmenrowid);
+    if (nextbannmencolid==10){
+      setHoveredcolid(-1); //端が光らないように
     }
-    if (nextbannmenRowId==19){
-      setHoveredRowId(0); //端が光らないように
+    if (nextbannmenrowid==19){
+      setHoveredrowid(0); //端が光らないように
     }
     setHovered(true);
   };
   const handleMouseLeave = () => {
-    setHoveredRowId(0);
-    setHoveredColId(0);
-    setHoverednextColId(0);
-    setHoverednextRowId(0);
+    setHoveredrowid(0);
+    setHoveredcolid(0);
+    setHoverednextcolid(0);
+    setHoverednextrowid(0);
     setHovered(false);
   }
 
   interface LightSpacingWallProps extends PaperProps  {
-    bannmenRowId: number;
-    bannmenColId: number;
-    nextbannmenColId: number;
-    nextbannmenRowId: number;
+    bannmenrowid: number;
+    bannmencolid: number;
+    nextbannmencolid: number;
+    nextbannmenrowid: number;
   }
   interface StraightSpacingWallProps extends PaperProps  {
-    bannmenRowId: number;
-    bannmenColId: number;
-    nextbannmenColId: number;
-    nextbannmenRowId: number;
+    bannmenrowid: number;
+    bannmencolid: number;
+    nextbannmencolid: number;
+    nextbannmenrowid: number;
   }
 
   // palette作った方がいいよ
-  const LightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
-  })<LightSpacingWallProps>(({ bannmenRowId, bannmenColId }) => ({
-    backgroundColor: hovered && bannmenRowId === hoveredRowId &&  (bannmenColId === hoveredColId || bannmenColId === hoveredColId+1 ) 
+  const LightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
+  })<LightSpacingWallProps>(({ bannmenrowid, bannmencolid }) => ({
+    backgroundColor: hovered && bannmenrowid === hoveredrowid &&  (bannmencolid === hoveredcolid || bannmencolid === hoveredcolid+1 ) 
     ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)"  ,
     transition: 'background-color 9ms',
     transitionDelay: '9ms',
 }))
-const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenId',
-})<StraightSpacingWallProps>(({ bannmenRowId, bannmenColId }) => ({
-  backgroundColor: hovered && (bannmenRowId === hoveredRowId || bannmenRowId === hoveredRowId+2) && bannmenColId === hoveredColId 
+const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
+})<StraightSpacingWallProps>(({ bannmenrowid, bannmencolid }) => ({
+  backgroundColor: hovered && (bannmenrowid === hoveredrowid || bannmenrowid === hoveredrowid+2) && bannmencolid === hoveredcolid 
   ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)",
   transition: 'background-color 9ms',
   transitionDelay: '9ms',
 }))
 
-useEffect(() => {
-  const url = 'api/create'
-  const board = "test"
-  const user = "users"
-  const postData = {
-    board_name: board,
-    user_name: user
-  };
-  const Options = {
-    method: 'POST',
-    headers: {
-      "Content-Type": 'application/json'
-    },
-    body: JSON.stringify(postData)
-  }
-  fetch(url, Options)
-  .then((response) => {
-    try{
-      if (response.status == 200){
-        console.log(response.json())
-        return response.json()
-      } else {
-        // setAlertAny(true)
-      }
-    } finally{
-    //   const AlertAnySnack = () => setAlertAny(false)
-    //   setTimeout( AlertAnySnack, 3200)
-    }
-  })
-  .catch(err => console.log(err))
-},[])
+// useEffect(() => {
+//   const url = 'api/create'
+//   const board = "test"
+//   const user = "users"
+//   const postData = {
+//     board_name: board,
+//     user_name: user
+//   };
+//   const Options = {
+//     method: 'POST',
+//     headers: {
+//       "Content-Type": 'application/json'
+//     },
+//     body: JSON.stringify(postData)
+//   }
+//   fetch(url, Options)
+//   .then((response) => {
+//     try{
+//       if (response.status == 200){
+//         console.log(response.json())
+//         return response.json()
+//       } else {
+//         // setAlertAny(true)
+//       }
+//     } finally{
+//     //   const AlertAnySnack = () => setAlertAny(false)
+//     //   setTimeout( AlertAnySnack, 3200)
+//     }
+//   })
+//   .catch(err => console.log(err))
+// },[])
 
 
-//Websocketの呼び出し
-const socketRef = useRef<WebSocket>()
-const [isConnected, setIsConnected] = useState<boolean>(false)
+// //Websocketの呼び出し
+// const socketRef = useRef<WebSocket>()
+// const [isConnected, setIsConnected] = useState<boolean>(false)
 
 // useEffect(() => {
 //   socketRef.current = new WebSocket("/api/ws")
@@ -131,25 +131,25 @@ const [isConnected, setIsConnected] = useState<boolean>(false)
         </Head>
         <main>
           <Paper className={styles.dodai}>
-            <Grid container 
+            <Grid container item
               className={`${styles.relativeScale} ${styles.gridField}`}             
             >
               {range(1, 17).map((row) => (
-                <Grid container item  
+                <Grid container item
                   className={styles.banmenCenter}
                   key={row}
                 >
                   {row % 2 === 0 
                   ? (range(1, 9).map((col) => (
                       ( col != 9
-                        ? <Grid item   key={col}>
+                        ? <Grid item key={col}>
                             {/*横向き余白*/}
                             <div className={styles.banmeLightSpacing}>
                               <LightSpacingWall 
-                              bannmenRowId={row}
-                              bannmenColId={col}
-                              nextbannmenColId={col+1}
-                              nextbannmenRowId={row}
+                              bannmenrowid={row}
+                              bannmencolid={col}
+                              nextbannmencolid={col+1}
+                              nextbannmenrowid={row}
                               className={styles.banmeLightSpacingScale}
                               onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
                               onMouseLeave={handleMouseLeave}
@@ -160,14 +160,14 @@ const [isConnected, setIsConnected] = useState<boolean>(false)
                               </Paper>
                             </div>
                           </Grid>
-                        : <Grid item   key={col}>
+                        : <Grid item key={col}>
                             {/*横向き余白*/}
                             <div className={styles.banmeLightSpacing}>
                               <LightSpacingWall 
-                              bannmenRowId={row}
-                              bannmenColId={col}
-                              nextbannmenColId={col+1}
-                              nextbannmenRowId={row}
+                              bannmenrowid={row}
+                              bannmencolid={col}
+                              nextbannmencolid={col+1}
+                              nextbannmenrowid={row}
                               className={styles.banmeLightSpacingScale}
                               onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
                               onMouseLeave={handleMouseLeave}
@@ -179,17 +179,17 @@ const [isConnected, setIsConnected] = useState<boolean>(false)
                     )))
                   : (range(1, 9).map((col) => (
                       ( col != 9
-                        ? <Grid item   key={col}>
+                        ? <Grid item key={col}>
                             {/*盤目*/}
                             <div className={styles.banmeLightSpacing}>
                               <Paper className={styles.banmeScale}>
                               </Paper>
                                 {/* 縦向き余白 */}
                               <StraightSpacingWall 
-                              bannmenRowId={row}
-                              bannmenColId={col}
-                              nextbannmenColId={col}
-                              nextbannmenRowId={row+2}
+                              bannmenrowid={row}
+                              bannmencolid={col}
+                              nextbannmencolid={col}
+                              nextbannmenrowid={row+2}
                               className={styles.banmeStraightSpacingScale}
                               onMouseEnter={() => handleMouseEnter(row, col, col, row+2)}
                               onMouseLeave={handleMouseLeave}
@@ -197,7 +197,7 @@ const [isConnected, setIsConnected] = useState<boolean>(false)
                               </StraightSpacingWall>
                             </div>
                           </Grid>
-                        : <Grid item   key={col}>
+                        : <Grid item key={col}>
                             {/*盤目*/}
                             <div className={styles.banmeLightSpacing}>
                               <Paper className={styles.banmeScale}>

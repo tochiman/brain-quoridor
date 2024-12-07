@@ -22,9 +22,6 @@ import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
 import { Padding } from "@mui/icons-material";
-import { rulesContent } from '../styles/rule.js';
-import { rules_itemContent } from '../styles/rule_item.js';
-import { useRouter } from 'next/router'
 
 
 
@@ -86,85 +83,22 @@ function a11yProps(index: number) {
   };
 }
 
+
+
+
+
+
+
  
 export default function main(){
-  const [openBattleModal, setOpenBattleModal] = React.useState(false);
-  const [openRuleModal, setOpenRuleModal] = React.useState(false);
-  const [value, setValue] = React.useState(0);
-  const [roomName, setRoomName] = React.useState('');
-  const [userName, setUserName] = React.useState('');
-
-  const handleOpenBattleModal = () => setOpenBattleModal(true);
-  const handleCloseBattleModal = () => setOpenBattleModal(false);
-  const handleOpenRuleModal = () => setOpenRuleModal(true);
-  const handleCloseRuleModal = () => setOpenRuleModal(false);
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
-  const [lockButton, setLockButton] = React.useState(false);
-  const router = useRouter()
-
-  //作成する際のapiを送る
-  const createRoom = () => {
-    setLockButton(true)
-    const postData = {
-      board_name: roomName,
-      user_name: userName
-    };
-
-    fetch('/api/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(postData),
-    })
-      .then(response => {
-        response.json()
-        if (response.status === 200){
-          router.push("/game")
-        }
-      }
-    )
-      .then(data => {
-        console.log(data);
-        setLockButton(false)
-      
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        setLockButton(false)
-      });
-  };
-
-  //参加する際のapiを送る
-  const joinRoom = () => {
-    const postData = {
-      board_name: roomName,
-      user_name: userName
-    };
-
-    fetch('/api/join', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(postData),
-    })
-      .then(response => {
-        response.json()
-        if (response.status === 200){
-          router.push("/game")
-        }
-      }
-    )
-      .then(data => {
-        console.log(data);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-  };
+    const [openBattleModal, setOpenBattleModal] = React.useState(false);
+    const [openRuleModal, setOpenRuleModal] = React.useState(false);
+    const handleOpenBattleModal = () => setOpenBattleModal(true);
+    const handleCloseBattleModal = () => setOpenBattleModal(false);
+    const handleOpenRuleModal = () => setOpenRuleModal(true);
+    const handleCloseRuleModal = () => setOpenRuleModal(false);
+    const [value, setValue] = React.useState(0);
+    const handleChange = (event: React.SyntheticEvent, newValue: number) => {setValue(newValue);};
 
 
   return (
@@ -178,6 +112,7 @@ export default function main(){
     
         <main className={`${styles.main} ${inter.className}`}>
           <h1>Brain Quoridall</h1>
+          
           <div>
           <Button onClick={handleOpenBattleModal}>知恵比べ</Button>
           <Modal
@@ -208,16 +143,12 @@ export default function main(){
                       noValidate
                       autoComplete="off"
                     >
-                      <TextField id="outlined-basic" label="ルーム名" variant="outlined" onChange={(e) => setRoomName(e.target.value)}/>
-                      <TextField id="outlined-basic" label="ユーザー名" variant="outlined" onChange={(e) => setUserName(e.target.value)}/>
+                      <TextField id="outlined-basic" label="ルーム名" variant="outlined" />
+                      <TextField id="outlined-basic" label="ユーザー名" variant="outlined" />
                       
                     </Box>
-                    {lockButton ? 
-                      <Button onClick={createRoom} disabled>作成</Button>
-                      :
-                      <Button onClick={createRoom}>作成</Button>
-                    }                    
-                    <Button onClick={joinRoom}>参加</Button>                  
+                    <Button>作成</Button>
+                    <Button>参加</Button>                  
                   </CustomTabPanel>
 
                   <CustomTabPanel value={value} index={1}>
@@ -272,7 +203,27 @@ export default function main(){
                                 
                     >      
                     </Box>  
-                    <div dangerouslySetInnerHTML={{ __html: rulesContent }} />
+                    <ol>
+                      <li>手番でできること</li>
+                        <h5>駒を進める or 壁を置くことができる。</h5>
+                      <li>駒の移動</li>
+                        <h5>前後左右に1マス進むことができる。</h5>
+                      <li>壁の使い方</li>
+                        <h5>1枚の壁は2マス分の大きさで、手持ちの分だけ設置することができる。(手持ちがなくなると進むことしかできない)</h5>
+                        <h5>壁は重ねて置くことはできない。</h5>
+                        <h5>壁を置くときにゴールへ辿り着けない置き方はできない。</h5>
+                      <li>勝利条件</li>
+                        <h5>自分の駒がスタートと反対(反対側のマスどれか)に辿り着くと勝利する。</h5>
+                      <li>特殊移動</li>
+                        <h5>自分と相手の駒が隣接しているとき相手の駒を飛び越えることができる</h5>
+                        <h5>相手を飛び越えるときに相手の後ろに壁があると斜め(相手の駒の隣)に移動することができる</h5>
+                    </ol>
+                    <ol>faf</ol>
+                    <ol>fsf</ol>
+                    <ol>sf</ol>
+                    <ol>fs</ol>
+                    <ol>sf</ol>
+                    <ol>fs</ol>
                   </CustomTabPanel>
 
                   <CustomTabPanel value={value} index={1}>
@@ -285,7 +236,6 @@ export default function main(){
                         autoComplete="off"
                       >
                       </Box>
-                      <div dangerouslySetInnerHTML={{ __html: rules_itemContent }} />
                   </CustomTabPanel>
 
                 </Box>
