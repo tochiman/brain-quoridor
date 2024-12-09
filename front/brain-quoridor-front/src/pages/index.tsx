@@ -152,7 +152,7 @@ export default function main(){
       body: JSON.stringify(postData),
     })
       .then(response => {
-        response.json()
+        console.log(response.json())
         if (response.status === 200){
           router.push("/game")
         }

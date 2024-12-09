@@ -1,11 +1,9 @@
-import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { styled } from"@mui/material/styles";
 import React, {HTMLAttributes, useState, useEffect, useRef} from "react";
 import { Grid, Paper, PaperProps, Typography } from "@mui/material";
 import Head from "next/head";
-import { light } from "@mui/material/styles/createPalette";
-
+import { cookies } from 'next/headers';
 
 function range(start: number, end: number): number[] {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -17,6 +15,11 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const [hoverednextcolid, setHoverednextcolid] = useState<number>(0);
   const [hoverednextrowid, setHoverednextrowid] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
+  // const [bid, setbid] = useState<string>();
+  // const [uid, setuid] = useState<string>();
+  const cookieStore = cookies();
+  const bid = cookieStore.get('bid');
+  const uid = cookieStore.get('uid');
 
   const handleMouseEnter = (bannmenrowid:number, bannmencolid:number, nextbannmencolid:number, nextbannmenrowid: number) => {
     setHoveredrowid(bannmenrowid);
@@ -68,59 +71,74 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
   transitionDelay: '9ms',
 }))
 
-// useEffect(() => {
-//   const url = 'api/create'
-//   const board = "test"
-//   const user = "users"
-//   const postData = {
-//     board_name: board,
-//     user_name: user
-//   };
-//   const Options = {
-//     method: 'POST',
-//     headers: {
-//       "Content-Type": 'application/json'
-//     },
-//     body: JSON.stringify(postData)
-//   }
-//   fetch(url, Options)
-//   .then((response) => {
-//     try{
-//       if (response.status == 200){
-//         console.log(response.json())
-//         return response.json()
-//       } else {
-//         // setAlertAny(true)
-//       }
-//     } finally{
-//     //   const AlertAnySnack = () => setAlertAny(false)
-//     //   setTimeout( AlertAnySnack, 3200)
-//     }
-//   })
-//   .catch(err => console.log(err))
-// },[])
+function piece_move (x:number, y:number) {
+  // rowが縦積みで17行ある為、9行に直すための処理
+  if (y !== 1) {
+    let tmp = y
+    let i
+    for (i=0; tmp>1; i++){
+      tmp-=2
+    }
+    y = y-i
+  }
 
+  // postData更新
+  const postData = {
+    x: x,
+    y: y,
+    // board_name: setbid(getCookie("bid")),
+    // user_name: setuid(getCookie("uid"))
+    board_name: bid,
+    user_name: uid
+  };
+  console.log(bid)
 
-// //Websocketの呼び出し
-// const socketRef = useRef<WebSocket>()
-// const [isConnected, setIsConnected] = useState<boolean>(false)
+  fetch('/api/move', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(postData),
+  })
+    .then(response => {
+      console.log(response.json())
+      if (response.status === 200){
+        console.log("sucsses")
+      }else if (response.status === 400){
+        console.log("failed")
+      }
+    }
+  )
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
 
-// useEffect(() => {
-//   socketRef.current = new WebSocket("/api/ws")
-//     socketRef.current.onopen = function () {
-//       socketRef.current?.send(btoa(user + ':' + password))
-//       setIsConnected(true)
-//       console.log('Connected')
-//     }
+//Websocketの呼び出し
+const socketRef = useRef<WebSocket>()
+const [isConnected, setIsConnected] = useState<boolean>(false)
 
-//     socketRef.current.onclose = function () {
-//       console.log('closed')
-//       setIsConnected(false)
-//     }
- 
-// },[]
+useEffect(() => {
 
-//)
+  socketRef.current = new WebSocket("/api/ws")
+    socketRef.current.onopen = function () {
+      setIsConnected(true)
+      console.log('Connected')
+    }
+
+    socketRef.current.onclose = function () {
+      setIsConnected(false)
+      console.log('closed')
+    }
+
+    socketRef.current.onmessage = function (event) {
+      console.log("メッセージを受信しました:", event.data);
+      const receivedData = JSON.parse(event.data)
+      console.log(receivedData["message"])
+    }
+},[]
+
+)
     return (
       <>
         <Head>
@@ -182,8 +200,11 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                         ? <Grid item key={col}>
                             {/*盤目*/}
                             <div className={styles.banmeLightSpacing}>
-                              <Paper className={styles.banmeScale}>
-                              </Paper>
+                              <div onClick={() => piece_move(col, row)}>
+                                <Paper 
+                                className={styles.banmeScale}>
+                                </Paper>
+                              </div>
                                 {/* 縦向き余白 */}
                               <StraightSpacingWall 
                               bannmenrowid={row}
@@ -200,8 +221,10 @@ const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !==
                         : <Grid item key={col}>
                             {/*盤目*/}
                             <div className={styles.banmeLightSpacing}>
-                              <Paper className={styles.banmeScale}>
-                              </Paper>
+                              <div onClick={() => piece_move(col, row)}>
+                                <Paper className={styles.banmeScale}>
+                                </Paper>
+                              </div>
                             </div>
                           </Grid>
                       )
