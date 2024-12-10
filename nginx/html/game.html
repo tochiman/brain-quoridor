@@ -254,13 +254,17 @@
     	}
     
     	const list = ["item_position", "item", "other_item", "name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "other_move_list", "board"]
-    	// const ip = "192.168.100.170";
-	// const socket = new WebSocket(`ws://${ip}/api/ws`);
-    	const ip = "quoridor.k175.net";
-    	const socket = new WebSocket(`wss://${ip}/api/ws`);
+    	const ip = "10.10.10.32";
+		const socket = new WebSocket(`ws://${ip}/api/ws`);
+    	// const ip = "quoridor.k175.net";
+    	// const socket = new WebSocket(`wss://${ip}/api/ws`);
     	
     	socket.addEventListener("open", (event) => {
     		console.log("接続が開かれました");
+			setInterval(() => {
+				socket.send("ping")
+				console.log("ping")
+			}, 10000);
     	});
     
     	socket.addEventListener("message", (event) => {
