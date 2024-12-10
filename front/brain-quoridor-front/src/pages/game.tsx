@@ -1,9 +1,8 @@
 import styles from "@/styles/Home.module.css";
 import { styled } from"@mui/material/styles";
 import React, {HTMLAttributes, useState, useEffect, useRef} from "react";
-import { Grid, Paper, PaperProps, Typography } from "@mui/material";
+import { Grid, ListClassKey, Paper, PaperProps, Typography } from "@mui/material";
 import Head from "next/head";
-import { cookies } from 'next/headers';
 
 function range(start: number, end: number): number[] {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -15,11 +14,7 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const [hoverednextcolid, setHoverednextcolid] = useState<number>(0);
   const [hoverednextrowid, setHoverednextrowid] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
-  // const [bid, setbid] = useState<string>();
-  // const [uid, setuid] = useState<string>();
-  const cookieStore = cookies();
-  const bid = cookieStore.get('bid');
-  const uid = cookieStore.get('uid');
+  const [receivedData, setreceivedData] = useState<any>();
 
   const handleMouseEnter = (bannmenrowid:number, bannmencolid:number, nextbannmencolid:number, nextbannmenrowid: number) => {
     setHoveredrowid(bannmenrowid);
@@ -42,6 +37,25 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
     setHovered(false);
   }
 
+  interface WebSocketData {
+      "name": string
+      "other_name": string
+      "turn": boolean
+      "position": number
+      "other_position": number
+      "wall": number
+      "other_wall": number
+      "color": string
+      "move_list": number
+      "other_move_list": number
+      "board": any
+      "item_position": number
+      "item": any
+      "other_item": any
+  }
+  interface BanmeProps extends PaperProps {
+    recievedData: any;
+  }
   interface LightSpacingWallProps extends PaperProps  {
     bannmenrowid: number;
     bannmencolid: number;
@@ -63,12 +77,16 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
     transition: 'background-color 9ms',
     transitionDelay: '9ms',
 }))
-const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
-})<StraightSpacingWallProps>(({ bannmenrowid, bannmencolid }) => ({
-  backgroundColor: hovered && (bannmenrowid === hoveredrowid || bannmenrowid === hoveredrowid+2) && bannmencolid === hoveredcolid 
-  ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)",
-  transition: 'background-color 9ms',
-  transitionDelay: '9ms',
+  const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
+  })<StraightSpacingWallProps>(({ bannmenrowid, bannmencolid }) => ({
+    backgroundColor: hovered && (bannmenrowid === hoveredrowid || bannmenrowid === hoveredrowid+2) && bannmencolid === hoveredcolid 
+    ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)",
+    transition: 'background-color 9ms',
+    transitionDelay: '9ms',
+}))
+  const Banme = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
+  })<BanmeProps>(({ receivedData }) => ({
+    backgroundColor: receivedData.position
 }))
 
 function piece_move (x:number, y:number) {
@@ -86,12 +104,7 @@ function piece_move (x:number, y:number) {
   const postData = {
     x: x,
     y: y,
-    // board_name: setbid(getCookie("bid")),
-    // user_name: setuid(getCookie("uid"))
-    board_name: bid,
-    user_name: uid
   };
-  console.log(bid)
 
   fetch('/api/move', {
     method: 'POST',
@@ -132,9 +145,8 @@ useEffect(() => {
     }
 
     socketRef.current.onmessage = function (event) {
-      console.log("メッセージを受信しました:", event.data);
-      const receivedData = JSON.parse(event.data)
-      console.log(receivedData["message"])
+      setreceivedData(JSON.parse(event.data))
+      console.log(JSON.parse(event.data))
     }
 },[]
 
@@ -201,9 +213,9 @@ useEffect(() => {
                             {/*盤目*/}
                             <div className={styles.banmeLightSpacing}>
                               <div onClick={() => piece_move(col, row)}>
-                                <Paper 
+                                <Banme
                                 className={styles.banmeScale}>
-                                </Paper>
+                                </Banme>
                               </div>
                                 {/* 縦向き余白 */}
                               <StraightSpacingWall 
@@ -213,8 +225,7 @@ useEffect(() => {
                               nextbannmenrowid={row+2}
                               className={styles.banmeStraightSpacingScale}
                               onMouseEnter={() => handleMouseEnter(row, col, col, row+2)}
-                              onMouseLeave={handleMouseLeave}
-                              >
+                              onMouseLeave={handleMouseLeave}>
                               </StraightSpacingWall>
                             </div>
                           </Grid>
@@ -223,7 +234,7 @@ useEffect(() => {
                             <div className={styles.banmeLightSpacing}>
                               <div onClick={() => piece_move(col, row)}>
                                 <Paper className={styles.banmeScale}>
-                                </Paper>
+                                  </Paper>
                               </div>
                             </div>
                           </Grid>

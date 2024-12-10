@@ -24,7 +24,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Padding } from "@mui/icons-material";
 import { rulesContent } from '../styles/rule.js';
 import { rules_itemContent } from '../styles/rule_item.js';
-import { useRouter } from 'next/router'
+import Router from 'next/router'
 
 
 
@@ -102,7 +102,6 @@ export default function main(){
     setValue(newValue);
   };
   const [lockButton, setLockButton] = React.useState(false);
-  const router = useRouter()
 
   //作成する際のapiを送る
   const createRoom = () => {
@@ -122,7 +121,7 @@ export default function main(){
       .then(response => {
         response.json()
         if (response.status === 200){
-          router.push("/game")
+          Router.push("/game")
         }
       }
     )
@@ -154,7 +153,7 @@ export default function main(){
       .then(response => {
         console.log(response.json())
         if (response.status === 200){
-          router.push("/game")
+          Router.push("/game")
         }
       }
     )
