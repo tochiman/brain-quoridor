@@ -1,7 +1,12 @@
 import math
 import random
 from copy import deepcopy
+import asyncio
 
+from logging import getLogger, StreamHandler
+logger = getLogger(__name__)
+logger.addHandler(StreamHandler())
+logger.setLevel("INFO")
 class QuoridorState:
     def __init__(self):
         self.board = []
@@ -196,7 +201,7 @@ class MCTSNode:
         return self.children[choices_weights.index(max(choices_weights))]
 
 
-def mcts(root, iterations=100):
+async def mcts(root, iterations=100):
     for _ in range(iterations):
         node = root
         while node.is_fully_expanded():
@@ -206,7 +211,7 @@ def mcts(root, iterations=100):
             node.expand()
             node = random.choice(node.children)
 
-        result = simulate(node.state)
+        result = await simulate(node.state)
 
         while node is not None:
             node.visits += 1
@@ -215,10 +220,11 @@ def mcts(root, iterations=100):
 
     return root.best_child(c_param=0).move
 
-def simulate(state):
+async def simulate(state):
     sim_state = state.copy()
     count = 0
     while not sim_state.is_terminal():
+        await asyncio.sleep(0)
         moves = sim_state.get_legal_moves(False)
         _move = None
         count += 1
@@ -264,6 +270,7 @@ class Mode:
 
     def del_ws(self, uid):
         self.ws[self.uids.index(uid)] = None
+        
 
     def is_del(self):
         if self.player[1] == "ai":
@@ -371,7 +378,6 @@ class Mode:
         
     async def run(self, uid, move_type, x, y, wall_type=None):
         player1_type = self.player[0]
-        player2_type = self.player[1]
         state = self.state
         current_uid = self.uids[state.current_player]
         
@@ -390,18 +396,29 @@ class Mode:
             else:
                 return 1
             state.make_move(move)
-            # AI
-            if player2_type == "ai":
-                root = MCTSNode(state)
-                move = mcts(root)
-                state.make_move(move)
 
-
-            if state.get_result() == -1 or state.get_result() == 1:
-                await self.win(uid)
-                return 3 # win
-            else:
-                await self.notify_ws()
-            return 0 #success
+            return await self.send(uid)
         else:
             return 2 # not turn
+    
+
+    async def send(self, uid):
+        state = self.state
+        if state.get_result() == -1 or state.get_result() == 1:
+            await self.win(uid)
+            return 3 # win
+        else:
+            await self.notify_ws()
+        return 0 # success
+
+
+    async def run_ai(self):
+        player2_type = self.player[1]
+        state = self.state
+
+        if player2_type == "ai":
+            root = MCTSNode(state)
+            move = await mcts(root)
+            state.make_move(move)
+        
+        await self.send(None)

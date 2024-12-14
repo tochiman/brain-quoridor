@@ -1,8 +1,9 @@
 import os
 import asyncio
 import hashlib
+import json
 
-from fastapi import FastAPI, APIRouter, Cookie, WebSocket, Response
+from fastapi import FastAPI, APIRouter, Cookie, WebSocket, Response, BackgroundTasks
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -122,6 +123,7 @@ async def join(
 @router.post("/move")
 async def move(
     move_request: MoveRequest,
+    background_tasks: BackgroundTasks,
     bid: str | None = Cookie(default = None),
     uid: str | None = Cookie(default = None)
     ):
@@ -132,6 +134,8 @@ async def move(
     y = move_request.y
 
     status = await game.run(uid, "m", x, y)
+    background_tasks.add_task(game.run_ai)
+
     if status == 0:
         return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
     elif status == 1:
@@ -145,6 +149,7 @@ async def move(
 @router.post("/wall")
 async def wall(
     wall_request: WallRequest,
+    background_tasks: BackgroundTasks,
     bid: str | None = Cookie(default = None),
     uid: str | None = Cookie(default = None)
     ):
@@ -156,6 +161,8 @@ async def wall(
     wall_type = wall_request.wall_type
 
     status = await game.run(uid, "w", x, y, wall_type)
+    background_tasks.add_task(game.run_ai)
+
     if status == 0:
         return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
     elif status == 1:
@@ -200,10 +207,9 @@ async def websocket(
     if game.is_start:
         await game.notify_ws(uid)
     while True:
-        await asyncio.sleep(10)
         try:
-            # await ws.send_json({"message": "ping"})
-            await asyncio.wait_for(ws.receive_text(), timeout=15)
+            data = await ws.receive_text()
+            await ws.send_text("pong")
         except:
             _ws = game.get_ws(uid)
             if _ws == ws:
@@ -211,6 +217,7 @@ async def websocket(
                 is_del = game.is_del()
                 if is_del:
                     del games[bid]
+                await ws.close()
 
 
 app.include_router(router)
