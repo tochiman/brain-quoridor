@@ -440,7 +440,6 @@ class Mode:
             self.player[0] = "human"
             self.player[1] = "ai"
             self.uids[0] = uid
-            self.player_name[0] = name
 
     
     async def win(self, uid):
