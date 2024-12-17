@@ -79,10 +79,17 @@ async def create(
 
     bid = gen_bid(game_request.board_name)
     game = games.get(bid)
+
+    if game:
+        if game.is_del():
+            del games[bid]
+            game = None
+
     if game is None:
         game = Mode(game_request.board_name)
         uid = gen_id()
         game.set_player(0, uid, game_request.user_name) 
+        game.set_item()
         games[bid] = game
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
         response.set_cookie(key="bid", value=bid)
@@ -133,7 +140,7 @@ async def move(
     x = move_request.x
     y = move_request.y
 
-    status = await game.run(uid, "m", x, y)
+    status = await game.run(uid, "move", x, y)
     background_tasks.add_task(game.run_ai)
 
     if status == 0:
@@ -160,13 +167,93 @@ async def wall(
     y = wall_request.y
     wall_type = wall_request.wall_type
 
-    status = await game.run(uid, "w", x, y, wall_type)
+    status = await game.run(uid, "wall", x, y, wall_type)
     background_tasks.add_task(game.run_ai)
 
     if status == 0:
         return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
     elif status == 1:
         return JSONResponse(content = {"message": "その場所に壁を置けません"}, status_code = 400)
+    elif status == 2:
+        return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
+    elif status == 3:
+        return JSONResponse(content = {"message": "ゲームが終了しました"}, status_code = 200)
+
+
+@router.post("/free_wall")
+async def free_wall(
+    wall_request: WallRequest,
+    background_tasks: BackgroundTasks,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
+    x = wall_request.x
+    y = wall_request.y
+    wall_type = wall_request.wall_type
+
+    status = await game.run(uid, "free_wall", x, y, wall_type)
+    background_tasks.add_task(game.run_ai)
+
+    if status == 0:
+        return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+    elif status == 1:
+        return JSONResponse(content = {"message": "その場所に壁を置けません"}, status_code = 400)
+    elif status == 2:
+        return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
+    elif status == 3:
+        return JSONResponse(content = {"message": "ゲームが終了しました"}, status_code = 200)
+
+
+@router.post("/break_wall")
+async def free_wall(
+    wall_request: WallRequest,
+    background_tasks: BackgroundTasks,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
+    x = wall_request.x
+    y = wall_request.y
+    wall_type = wall_request.wall_type
+
+    status = await game.run(uid, "break_wall", x, y, wall_type)
+    background_tasks.add_task(game.run_ai)
+
+    if status == 0:
+        return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+    elif status == 1:
+        return JSONResponse(content = {"message": "その壁は壊せません"}, status_code = 400)
+    elif status == 2:
+        return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
+    elif status == 3:
+        return JSONResponse(content = {"message": "ゲームが終了しました"}, status_code = 200)
+
+
+@router.post("/twice")
+async def move(
+    move_request: MoveRequest,
+    background_tasks: BackgroundTasks,
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)
+    ):
+    game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
+    x = move_request.x
+    y = move_request.y
+
+    status = await game.run(uid, "twice", x, y)
+    background_tasks.add_task(game.run_ai)
+
+    if status == 0:
+        return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
+    elif status == 1:
+        return JSONResponse(content = {"message": "その場所に動くことはできません"}, status_code = 400)
     elif status == 2:
         return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
     elif status == 3:
@@ -209,7 +296,7 @@ async def websocket(
     while True:
         try:
             data = await ws.receive_text()
-            await ws.send_text("pong")
+            await ws.send_json({"message":"pong"})
         except:
             _ws = game.get_ws(uid)
             if _ws == ws:
