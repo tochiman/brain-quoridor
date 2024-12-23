@@ -11,18 +11,13 @@ function range(start: number, end: number): number[] {
 export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const [hoveredrowid, setHoveredrowid] = useState<number>(0);
   const [hoveredcolid, setHoveredcolid] = useState<number>(0);
-  const [hoverednextcolid, setHoverednextcolid] = useState<number>(0);
-  const [hoverednextrowid, setHoverednextrowid] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
   const [receiveddata, setreceiveddata] = useState<any>();
-  const [currentrowid, setcurrentrowid] = useState<number>(0);
-  const [currentcolid, setcurrentcolid] = useState<number>(0);
+  const [wall, setwall] = useState<any>([]);
 
   const handleMouseEnter = (bannmenrowid:number, bannmencolid:number, nextbannmencolid:number, nextbannmenrowid: number) => {
     setHoveredrowid(bannmenrowid);
     setHoveredcolid(bannmencolid);
-    setHoverednextcolid(nextbannmencolid);
-    setHoverednextcolid(nextbannmenrowid);
     if (nextbannmencolid==10){
       setHoveredcolid(-1); //端が光らないように
     }
@@ -34,8 +29,6 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const handleMouseLeave = () => {
     setHoveredrowid(0);
     setHoveredcolid(0);
-    setHoverednextcolid(0);
-    setHoverednextrowid(0);
     setHovered(false);
   }
 
@@ -55,41 +48,27 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
       "other_item": any
   }
   interface BanmeProps extends PaperProps {
-    receiveddata: any;
-    currentrowid: number;
-    currentcolid: number;
+    backgroundcolor: string;
   }
   interface LightSpacingWallProps extends PaperProps  {
-    bannmenrowid: number;
-    bannmencolid: number;
-    nextbannmencolid: number;
-    nextbannmenrowid: number;
+    backgroundcolor: string;
   }
   interface StraightSpacingWallProps extends PaperProps  {
-    bannmenrowid: number;
-    bannmencolid: number;
-    nextbannmencolid: number;
-    nextbannmenrowid: number;
+    backgroundcolor: string;
   }
 
   // palette作った方がいいよ
   const LightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
-  })<LightSpacingWallProps>(({ bannmenrowid, bannmencolid }) => ({
-    backgroundColor: hovered && bannmenrowid === hoveredrowid &&  (bannmencolid === hoveredcolid || bannmencolid === hoveredcolid+1 ) 
-    ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)"  ,
-    transition: 'background-color 9ms',
-    transitionDelay: '9ms',
+  })<LightSpacingWallProps>(({ backgroundcolor }) => ({
+    backgroundColor: backgroundcolor
 }))
   const StraightSpacingWall = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
-  })<StraightSpacingWallProps>(({ bannmenrowid, bannmencolid }) => ({
-    backgroundColor: hovered && (bannmenrowid === hoveredrowid || bannmenrowid === hoveredrowid+2) && bannmencolid === hoveredcolid 
-    ? "rgba(102, 102, 102, 0.5)" : "rgb(44, 26, 1)",
-    transition: 'background-color 9ms',
-    transitionDelay: '9ms',
+  })<StraightSpacingWallProps>(({ backgroundcolor }) => ({
+    backgroundColor: backgroundcolor
 }))
   const Banme = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
-  })<BanmeProps>(({ receiveddata, currentrowid, currentcolid }) => ({
-    backgroundColor: (receiveddata?.position?.[0] === currentcolid-1 && receiveddata?.position?.[1] === currentrowid-1) ? "rgb(0, 0, 0)" : "rgb(235, 141, 11)"
+  })<BanmeProps>(({ backgroundcolor }) => ({
+    backgroundColor: backgroundcolor
 }))
 
 
@@ -103,6 +82,8 @@ function piece_move (x:number, y:number) {
     }
     y = y-i
   }
+  x=x-1
+  y=y-1
 
   // postData更新
   const postData = {
@@ -118,7 +99,6 @@ function piece_move (x:number, y:number) {
     body: JSON.stringify(postData),
   })
     .then(response => {
-      console.log(response.json())
       if (response.status === 200){
         console.log("sucsses")
       }else if (response.status === 400){
@@ -129,6 +109,48 @@ function piece_move (x:number, y:number) {
     .catch(error => {
       console.error('Error:', error);
     });
+}
+
+function piece_wall(x:number, y:number, type:string) {
+
+    // rowが縦積みで17行ある為、9行に直すための処理
+    if (y !== 1) {
+      let tmp = y
+      let i
+      for (i=0; tmp>1; i++){
+        tmp-=2
+      }
+      y = y-i
+    }
+
+    x=x-1
+    y=y-1
+
+  //postData更新
+  const postData = {
+      x: x,
+      y: y,
+      wall_type: type
+  };
+  fetch(`/api/wall`, {
+      method: 'POST',
+      headers: {
+          "Content-Type": 'application/json'
+      },
+      body: JSON.stringify(postData)
+  })
+  .then(response => {
+    if (response.status === 200){
+      console.log("sucsses")
+      setwall((prevwall:any) => ([...prevwall, [x,y]]))
+    }else if (response.status === 400){
+      console.log("failed")
+    }
+  }
+)
+  .catch(error => {
+    console.error('Error:', error);
+  });
 }
 
 //Websocketの呼び出し
@@ -149,8 +171,11 @@ useEffect(() => {
     }
 
     socketRef.current.onmessage = function (event) {
-      setreceiveddata(JSON.parse(event.data))
-      console.log(JSON.parse(event.data))
+      const socketdata=JSON.parse(event.data)
+      if (socketdata.message !== "ping") {
+        setreceiveddata(socketdata)
+        console.log(socketdata)
+      }
     }
 },[]
 
@@ -179,16 +204,29 @@ useEffect(() => {
                         ? <Grid item key={col}>
                             {/*横向き余白*/}
                             <div className={styles.banmeLightSpacing}>
-                              <LightSpacingWall 
-                              bannmenrowid={row}
-                              bannmencolid={col}
-                              nextbannmencolid={col+1}
-                              nextbannmenrowid={row}
-                              className={styles.banmeLightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
-                              onMouseLeave={handleMouseLeave}
-                              >
-                              </LightSpacingWall>
+                              <div onClick={() => piece_wall(col, row, "h")}>
+                                <LightSpacingWall 
+                                className={styles.banmeLightSpacingScale}
+                                onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
+                                onMouseLeave={handleMouseLeave}
+                                backgroundcolor={
+                                  (() => {
+                                      if (hovered && row === hoveredrowid &&  (col === hoveredcolid || col === hoveredcolid+1 )){
+                                        return "rgba(102, 102, 102, 0.5)"
+                                      } else{
+                                      for (let i:number=0; i<wall.length; i++){
+                                        if((wall[i][0] === col-1) && (((wall[i][1])*2) === row)){
+                                            return "rgb(255, 0, 0)"
+                                          }
+                                        }
+                                      return "rgb(44, 26, 1)"
+                                      }
+                                    }
+                                  )()
+                                }
+                                >
+                                </LightSpacingWall>
+                              </div>
                                 {/* 交差点余白 */}
                               <Paper className={styles.banmeCrossSpacingScale}>
                               </Paper>
@@ -197,16 +235,29 @@ useEffect(() => {
                         : <Grid item key={col}>
                             {/*横向き余白*/}
                             <div className={styles.banmeLightSpacing}>
-                              <LightSpacingWall 
-                              bannmenrowid={row}
-                              bannmencolid={col}
-                              nextbannmencolid={col+1}
-                              nextbannmenrowid={row}
-                              className={styles.banmeLightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
-                              onMouseLeave={handleMouseLeave}
-                              >
-                              </LightSpacingWall>
+                              <div onClick={() => piece_wall(col, row, "h")}>
+                                <LightSpacingWall 
+                                className={styles.banmeLightSpacingScale}
+                                onMouseEnter={() => handleMouseEnter(row, col, col+1, row)}
+                                onMouseLeave={handleMouseLeave}
+                                backgroundcolor={
+                                  (() => {
+                                      if (hovered && row === hoveredrowid &&  (col === hoveredcolid || col === hoveredcolid+1 )){
+                                        return "rgba(102, 102, 102, 0.5)"
+                                      } else{
+                                      for (let i:number=0; i<wall.length; i++){
+                                        if((wall[i][0] === col-1) && (((wall[i][1])*2) === row)){
+                                            return "rgb(255, 0, 0)"
+                                          }
+                                        }
+                                      return "rgb(44, 26, 1)"
+                                      }
+                                    }
+                                  )()
+                                }
+                                >
+                                </LightSpacingWall>
+                              </div>
                             </div>
                           </Grid>
                       )
@@ -219,21 +270,60 @@ useEffect(() => {
                               <div onClick={() => piece_move(col, row)}>
                                 <Banme
                                 className={styles.banmeScale}
-                                receiveddata={receiveddata} 
-                                currentrowid={row}
-                                currentcolid={col}>
+                                backgroundcolor={
+                                  (() =>{
+                                      if ((receiveddata?.position?.[0] === col-1) && (((receiveddata?.position?.[1])*2) === row-1)){
+                                        if (receiveddata?.color === "b")
+                                          return "rgb(0,0,0)"
+                                        else
+                                          return "rgb(255,255,255)"
+                                      }
+                                      else if ((receiveddata?.other_position?.[0] === col-1) && (((receiveddata?.other_position?.[1])*2) === row-1)){
+                                        if (receiveddata?.color === "b")
+                                          return "rgb(255, 255, 255)"
+                                        else
+                                          return "rgb(0, 0, 0)"
+                                      }
+                                      else{
+                                        for (let i:number=0; i<receiveddata?.move_list?.length; i++){
+                                          if((receiveddata?.move_list?.[i][0] === col-1) && (((receiveddata?.move_list?.[i][1])*2) === row-1)){
+                                            if (receiveddata?.color === "b")
+                                              return "rgba(55, 55, 55, 0.8)"
+                                            else
+                                            return "rgba(200, 200, 200, 0.4)"
+                                          }
+                                        }
+                                        return "rgb(190, 117, 13)"
+                                      }
+                                  })()
+                                }
+                                >
                                 </Banme>
                               </div>
                                 {/* 縦向き余白 */}
-                              <StraightSpacingWall 
-                              bannmenrowid={row}
-                              bannmencolid={col}
-                              nextbannmencolid={col}
-                              nextbannmenrowid={row+2}
-                              className={styles.banmeStraightSpacingScale}
-                              onMouseEnter={() => handleMouseEnter(row, col, col, row+2)}
-                              onMouseLeave={handleMouseLeave}>
-                              </StraightSpacingWall>
+                              <div onClick={() => piece_wall(col, row, "v")}>
+                                <StraightSpacingWall 
+                                className={styles.banmeStraightSpacingScale}
+                                onMouseEnter={() => handleMouseEnter(row, col, col, row+2)}
+                                onMouseLeave={handleMouseLeave}
+                                backgroundcolor={
+                                  (() => {
+                                      if (hovered && (row === hoveredrowid || row === hoveredrowid+2) && col === hoveredcolid){
+                                        return "rgba(102, 102, 102, 0.5)"
+                                    } else{
+                                      for (let i:number=0; i<wall.length; i++){
+                                        if((wall[i][0] === col-1) && (((wall[i][1])*2) === row-1)){
+                                            return "rgb(255, 0, 0)"
+                                          }
+                                        }
+                                      return "rgb(44, 26, 1)"
+                                      }
+                                    }
+                                  )()
+                                }
+                                >
+                                </StraightSpacingWall>
+                              </div>
                             </div>
                           </Grid>
                         : <Grid item key={col}>
@@ -242,9 +332,33 @@ useEffect(() => {
                               <div onClick={() => piece_move(col, row)}>
                               <Banme
                                 className={styles.banmeScale}
-                                receiveddata={receiveddata} 
-                                currentrowid={row}
-                                currentcolid={col}>
+                                backgroundcolor={
+                                  (() =>{
+                                      if ((receiveddata?.position?.[0] === col-1) && (((receiveddata?.position?.[1])*2) === row-1)){
+                                        if (receiveddata?.color === "b")
+                                          return "rgb(0,0,0)"
+                                        else
+                                          return "rgb(255,255,255)"
+                                      }
+                                      else if ((receiveddata?.other_position?.[0] === col-1) && (((receiveddata?.other_position?.[1])*2) === row-1)){
+                                        if (receiveddata?.color === "b")
+                                          return "rgb(255, 255, 255)"
+                                        else
+                                          return "rgb(0, 0, 0)"
+                                      }
+                                      else{
+                                        for (let i:number=0; i<receiveddata?.move_list?.length; i++){
+                                          if((receiveddata?.move_list?.[i][0] === col-1) && (((receiveddata?.move_list?.[i][1])*2) === row-1)){
+                                            if (receiveddata?.color === "b")
+                                              return "rgba(55, 55, 55, 0.8)"
+                                            else
+                                            return "rgba(200, 200, 200, 0.4)"
+                                          }
+                                        }
+                                        return "rgb(190, 117, 13)"
+                                      }
+                                  })()
+                                }>
                               </Banme>
                               </div>
                             </div>
