@@ -7,7 +7,7 @@ WORKDIR /home/node/app/
 ENV WATCHPACK_POLLING=true
 
 COPY brain-quoridor-front/package.json ./
-RUN yarn install  --network-timeout 600000
+RUN yarn install  --no-progress --network-timeout 1000000
 
 EXPOSE 3000
 
