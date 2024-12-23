@@ -14,7 +14,9 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const [hoverednextcolid, setHoverednextcolid] = useState<number>(0);
   const [hoverednextrowid, setHoverednextrowid] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
-  const [receivedData, setreceivedData] = useState<any>();
+  const [receiveddata, setreceiveddata] = useState<any>();
+  const [currentrowid, setcurrentrowid] = useState<number>(0);
+  const [currentcolid, setcurrentcolid] = useState<number>(0);
 
   const handleMouseEnter = (bannmenrowid:number, bannmencolid:number, nextbannmencolid:number, nextbannmenrowid: number) => {
     setHoveredrowid(bannmenrowid);
@@ -47,14 +49,15 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
       "other_wall": number
       "color": string
       "move_list": number
-      "other_move_list": number
       "board": any
       "item_position": number
       "item": any
       "other_item": any
   }
   interface BanmeProps extends PaperProps {
-    recievedData: any;
+    receiveddata: any;
+    currentrowid: number;
+    currentcolid: number;
   }
   interface LightSpacingWallProps extends PaperProps  {
     bannmenrowid: number;
@@ -85,9 +88,10 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
     transitionDelay: '9ms',
 }))
   const Banme = styled(Paper, {shouldForwardProp: (prop) => prop !== 'bannmenid',
-  })<BanmeProps>(({ receivedData }) => ({
-    backgroundColor: receivedData.position
+  })<BanmeProps>(({ receiveddata, currentrowid, currentcolid }) => ({
+    backgroundColor: (receiveddata?.position?.[0] === currentcolid-1 && receiveddata?.position?.[1] === currentrowid-1) ? "rgb(0, 0, 0)" : "rgb(235, 141, 11)"
 }))
+
 
 function piece_move (x:number, y:number) {
   // rowが縦積みで17行ある為、9行に直すための処理
@@ -145,7 +149,7 @@ useEffect(() => {
     }
 
     socketRef.current.onmessage = function (event) {
-      setreceivedData(JSON.parse(event.data))
+      setreceiveddata(JSON.parse(event.data))
       console.log(JSON.parse(event.data))
     }
 },[]
@@ -214,7 +218,10 @@ useEffect(() => {
                             <div className={styles.banmeLightSpacing}>
                               <div onClick={() => piece_move(col, row)}>
                                 <Banme
-                                className={styles.banmeScale}>
+                                className={styles.banmeScale}
+                                receiveddata={receiveddata} 
+                                currentrowid={row}
+                                currentcolid={col}>
                                 </Banme>
                               </div>
                                 {/* 縦向き余白 */}
@@ -233,8 +240,12 @@ useEffect(() => {
                             {/*盤目*/}
                             <div className={styles.banmeLightSpacing}>
                               <div onClick={() => piece_move(col, row)}>
-                                <Paper className={styles.banmeScale}>
-                                  </Paper>
+                              <Banme
+                                className={styles.banmeScale}
+                                receiveddata={receiveddata} 
+                                currentrowid={row}
+                                currentcolid={col}>
+                              </Banme>
                               </div>
                             </div>
                           </Grid>
