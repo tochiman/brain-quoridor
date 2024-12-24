@@ -5,6 +5,7 @@ import json
 
 from fastapi import FastAPI, APIRouter, Cookie, WebSocket, Response, BackgroundTasks
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from game import Mode
@@ -18,6 +19,15 @@ root = os.getenv('ROOT_PATH')
 
 app = FastAPI()
 router = APIRouter(prefix=root)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://quoridor.k175.net", "http://192.168.100.170"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
+
 
 games = {}
 
@@ -93,8 +103,9 @@ async def create(
         game.set_item_position()
         games[bid] = game
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
-        response.set_cookie(key="bid", value=bid)
-        response.set_cookie(key="uid", value=uid)
+        expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+        response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
         return response
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 400)
@@ -118,8 +129,9 @@ async def join(
             await game.notify_ws()
 
             response = JSONResponse(content = {"message": "参加しました"}, status_code = 200)
-            response.set_cookie(key="bid", value=bid)
-            response.set_cookie(key="uid", value=uid)
+            expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+            response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
             return response
         else:
             if bid == cbid and cuid in game.uids:
@@ -153,7 +165,6 @@ async def move(
     elif status == 3:
         return JSONResponse(content = {"message": "ゲームが終了しました"}, status_code = 200)
 
-
 @router.post("/wall")
 async def wall(
     wall_request: WallRequest,
@@ -179,7 +190,6 @@ async def wall(
         return JSONResponse(content = {"message": "あなたのターンではありません"}, status_code = 400)
     elif status == 3:
         return JSONResponse(content = {"message": "ゲームが終了しました"}, status_code = 200)
-
 
 @router.post("/free_wall")
 async def free_wall(
@@ -212,12 +222,14 @@ async def free_wall(
 async def free_wall(
     wall_request: WallRequest,
     background_tasks: BackgroundTasks,
+
     bid: str | None = Cookie(default = None),
     uid: str | None = Cookie(default = None)
     ):
     game = games.get(bid)
     if game is None:
         return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
+
     x = wall_request.x
     y = wall_request.y
     wall_type = wall_request.wall_type
@@ -245,6 +257,7 @@ async def move(
     game = games.get(bid)
     if game is None:
         return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
+
     x = move_request.x
     y = move_request.y
 

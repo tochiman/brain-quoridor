@@ -132,10 +132,9 @@ class QuoridorState:
                         l.append(t)
         return (result[0] and result[1])
 
-
+      
     def get_legal_moves(self, flag=True, ai=False):
         return self.get_legal_moves_do(self.current_player, flag, ai)
-    
 
     def get_legal_moves_do(self, player, flag=True, ai=False):
         moves = []
@@ -491,7 +490,6 @@ class Mode:
         else:
             return 2 # not turn
     
-
     async def send(self, uid):
         state = self.state
         if state.get_result() == -1 or state.get_result() == 1:
@@ -518,4 +516,4 @@ class Mode:
         name = self.player_name[self.uids.index(uid)]
         other_name = self.player_name[1-self.uids.index(uid)]
         return {'room_name':room_name, 'name':name, 'other_name':other_name}
-    
+
