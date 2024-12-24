@@ -55,6 +55,15 @@
   /* タブとヘッダー部分を引いた高さ */
 }
 
+.roomInfo {
+  color: #333;
+  /* ダークグレーで文字を見やすくする */
+  font-size: 16px;
+  /* フォントサイズを適度に設定 */
+  margin-top: 10px;
+  /* 上に少し余白を追加 */
+}
+
 .rulesContainer {
   display: flex;
   flex-direction: row;
