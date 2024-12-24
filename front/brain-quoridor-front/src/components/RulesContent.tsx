@@ -1,56 +1,122 @@
 import React, { useState } from 'react';
-import { Typography, Button, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import { Typography, Card, CardContent, Button, Grid, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
-function RulesContent() {
-    const [openWallDialog, setOpenWallDialog] = useState(false);
-    const [openMoveDialog, setOpenMoveDialog] = useState(false);
+interface RulesContentProps { }
 
-    const handleWallDialogOpen = () => setOpenWallDialog(true);
-    const handleWallDialogClose = () => setOpenWallDialog(false);
-    const handleMoveDialogOpen = () => setOpenMoveDialog(true);
-    const handleMoveDialogClose = () => setOpenMoveDialog(false);
+const RulesContent: React.FC<RulesContentProps> = () => {
+    const [dialogOpen, setDialogOpen] = useState<string | null>(null);
+
+    const handleDialogOpen = (type: string) => {
+        setDialogOpen(type);
+    };
+
+    const handleDialogClose = () => {
+        setDialogOpen(null);
+    };
 
     return (
-        <div>
-            <Typography variant="h6">勝利条件</Typography>
-            <Typography>自分のコマを相手側の陣地に到達させること。</Typography>
+        <>
+            <Grid container spacing={2} direction="column">
+                <Grid item xs={12}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" style={{ fontWeight: 'bold', color: '#333' }}>
+                                ゲームの目的
+                            </Typography>
+                            <Typography style={{ color: '#555' }}>
+                                自分のコマを相手側のゴールラインまで移動させることが目的です。
+                            </Typography>
+                            <Button variant="outlined" onClick={() => handleDialogOpen("move")} style={{ marginTop: '10px' }}>
+                                詳細を見る
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Grid>
 
-            <Typography variant="h6" style={{ marginTop: '20px' }}>壁の枚数</Typography>
-            <Typography>各プレイヤーに10枚。</Typography>
+                <Grid item xs={12}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" style={{ fontWeight: 'bold', color: '#333' }}>
+                                コマの動かし方
+                            </Typography>
+                            <Typography style={{ color: '#555' }}>
+                                コマは上下左右に1マス移動します。相手のコマを飛び越えることも可能です。
+                            </Typography>
+                            <Button variant="outlined" onClick={() => handleDialogOpen("move")} style={{ marginTop: '10px' }}>
+                                詳細を見る
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Grid>
 
-            <Typography variant="h6" style={{ marginTop: '20px' }}>ゲームの説明</Typography>
-            <Typography>壁で相手の進路を妨害しながら、自分のコマを相手陣地に進めましょう！</Typography>
+                <Grid item xs={12}>
+                    <Card>
+                        <CardContent>
+                            <Typography variant="h6" style={{ fontWeight: 'bold', color: '#333' }}>
+                                壁の使用
+                            </Typography>
+                            <Typography style={{ color: '#555' }}>
+                                各プレイヤーは10枚の壁を使って相手の進路を妨害できます。
+                            </Typography>
+                            <Button variant="outlined" onClick={() => handleDialogOpen("wall")} style={{ marginTop: '10px' }}>
+                                詳細を見る
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
 
-            <div style={{ marginTop: '20px' }}>
-                <Button variant="outlined" onClick={handleWallDialogOpen}>
-                    壁の置き方
-                </Button>
-                <Button variant="outlined" onClick={handleMoveDialogOpen} style={{ marginLeft: '10px' }}>
-                    コマの動かし方
-                </Button>
-            </div>
-
-            {/* 壁の置き方ダイアログ */}
-            <Dialog open={openWallDialog} onClose={handleWallDialogClose}>
-                <DialogTitle>壁の置き方</DialogTitle>
+            {/* ダイアログ表示部分 */}
+            <Dialog open={dialogOpen !== null} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    {dialogOpen === "purpose" ? "勝利条件" : dialogOpen === "move" ? "コマの動かし方" : dialogOpen === "wall" ? "壁の置き方" : ""}
+                </DialogTitle>
                 <DialogContent>
-                    <Typography>
-                        壁はプレイヤーの進路を塞ぐために置くことができます。壁はコマの進路に対して垂直または水平に配置できます。
-                    </Typography>
+                    {dialogOpen === "purpose" && (
+                        <>
+                            <Typography style={{ color: '#333', marginBottom: '16px' }}>
+                                壁を駆使しながら相手側の最終ラインまで進みましょう
+                            </Typography>
+                            <img
+                                src="/assets/gifs/sample.gif"
+                                alt="勝利条件"
+                                style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+                            />
+                        </>
+                    )}
+                    {dialogOpen === "move" && (
+                        <>
+                            <Typography style={{ color: '#333', marginBottom: '16px' }}>
+                                コマは上下左右に1マスずつ動かすことができます。また、相手のコマを飛び越えることも可能です。
+                            </Typography>
+                            <img
+                                src="/assets/gifs/sample.gif"
+                                alt="コマの動かし方の例"
+                                style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+                            />
+                        </>
+                    )}
+                    {dialogOpen === "wall" && (
+                        <>
+                            <Typography style={{ color: '#333', marginBottom: '16px' }}>
+                                壁を縦か横に置いて、相手の進路を妨害できます。ただし、完全に道を塞ぐことはできません。
+                            </Typography>
+                            <img
+                                src="/assets/gifs/sample.gif"
+                                alt="壁の置き方の例"
+                                style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+                            />
+                        </>
+                    )}
                 </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose} color="primary">
+                        閉じる
+                    </Button>
+                </DialogActions>
             </Dialog>
-
-            {/* コマの動かし方ダイアログ */}
-            <Dialog open={openMoveDialog} onClose={handleMoveDialogClose}>
-                <DialogTitle>コマの動かし方</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        コマは一度に一マス移動できます。隣接するマスに移動するか、相手のコマを飛び越えることもできます。
-                    </Typography>
-                </DialogContent>
-            </Dialog>
-        </div>
+        </>
     );
-}
+};
 
 export default RulesContent;
