@@ -52,7 +52,8 @@ class Game:
         for index, _user in enumerate(self.users.values()):
             user = _user["user"]
             color = user.color
-            l = deepcopy(user.move_list)
+            l = user.make_move_list_do(user.position[0], user.position[1], b, ())
+
             for i in l:
                 x, y = i
                 if user.reach_goal_do(y, color):

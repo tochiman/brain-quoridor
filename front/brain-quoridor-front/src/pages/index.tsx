@@ -97,7 +97,7 @@ export default function main() {
   const handleCloseBattleModal = () => setOpenBattleModal(false);
   const handleOpenRuleModal = () => setOpenRuleModal(true);
   const handleCloseRuleModal = () => setOpenRuleModal(false);
-  
+
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
@@ -252,4 +252,6 @@ export default function main() {
       </main>
     </>
   );
+
 }
+
