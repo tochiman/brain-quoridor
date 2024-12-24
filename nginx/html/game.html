@@ -119,13 +119,13 @@
     		.catch(error => {console.error('Error:', error)});
     	}
     
-    	function get_wall() {
-    		fetch(`/api/get_wall`, {
+    	function free_wall() {
+    		fetch(`/api/free_wall`, {
     			method: 'POST'
     		})
     		.then(response => {
     			if (response.ok) {
-    				var button = document.getElementById("get_wall");
+    				var button = document.getElementById("free_wall");
     				button.disabled = "disabled";
     				button.style.backgroundColor = "#f44336";
     				console.log("success");
@@ -135,10 +135,21 @@
     		})
     		.catch(error => {console.error('Error:', error)});
     	}
-    
+
     	function twice() {
+    		const x = document.getElementById('move_x').value;
+    		const y = document.getElementById('move_y').value;
+    
+    		const postData = {
+    			x: x,
+    			y: y
+    		};
     		fetch(`/api/twice`, {
-    			method: 'POST'
+    			method: 'POST',
+    			headers: {
+    				"Content-Type": 'application/json'
+    			},
+    			body: JSON.stringify(postData)
     		})
     		.then(response => {
     			if (response.ok) {
@@ -154,20 +165,14 @@
     	}
     
     	function break_wall() {
-    		const x1 = document.getElementById('wall_x1').value;
-    		const y1 = document.getElementById('wall_y1').value;
-    		const wall_type1 = document.getElementById('wall_type1').value;
-    		const x2 = document.getElementById('wall_x2').value;
-    		const y2 = document.getElementById('wall_y2').value;
-    		const wall_type2 = document.getElementById('wall_type2').value;
+    		const x = document.getElementById('wall_x').value;
+    		const y = document.getElementById('wall_y').value;
+    		const wall_type = document.getElementById('wall_type').value;
     
     		const postData = {
-    			x1: x1,
-    			y1: y1,
-    			wall_type1: wall_type1,
-    			x2: x2,
-    			y2: y2,
-    			wall_type2: wall_type2
+    			x: x,
+    			y: y,
+    			wall_type: wall_type,
     		};
     		fetch(`/api/break_wall`, {
     			method: 'POST',
@@ -188,52 +193,18 @@
     		})
     		.catch(error => {console.error('Error:', error)});
     	}
-    
-    	function replace_wall() {
-    		const x1 = document.getElementById('wall_x1').value;
-    		const y1 = document.getElementById('wall_y1').value;
-    		const wall_type1 = document.getElementById('wall_type1').value;
-    		const x2 = document.getElementById('wall_x2').value;
-    		const y2 = document.getElementById('wall_y2').value;
-    		const wall_type2 = document.getElementById('wall_type2').value;
-    
-    		const postData = {
-    			x1: x1,
-    			y1: y1,
-    			wall_type1: wall_type1,
-    			x2: x2,
-    			y2: y2,
-    			wall_type2: wall_type2
-    		};
-    		fetch(`/api/replace_wall`, {
-    			method: 'POST',
-    			headers: {
-    				"Content-Type": 'application/json'
-    			},
-    			body: JSON.stringify(postData)
-    		})
-    		.then(response => {
-    			if (response.ok) {
-    				var button = document.getElementById("replace_wall");
-    				button.disabled = "disabled";
-    				button.style.backgroundColor = "#f44336";
-    				console.log("success");
-    				return;
-    			}
-			console.log(response.json());
-    		})
-    		.catch(error => {console.error('Error:', error)});
-    	}
-    
-    	function move_everyone() {
-    		const x = document.getElementById('move_x').value;
-    		const y = document.getElementById('move_y').value;
+
+    	function free_wall() {
+    		const x = document.getElementById('wall_x').value;
+    		const y = document.getElementById('wall_y').value;
+    		const wall_type = document.getElementById('wall_type').value;
     
     		const postData = {
     			x: x,
-    			y: y
+    			y: y,
+    			wall_type: wall_type,
     		};
-    		fetch(`/api/move_everyone`, {
+    		fetch(`/api/free_wall`, {
     			method: 'POST',
     			headers: {
     				"Content-Type": 'application/json'
@@ -242,7 +213,7 @@
     		})
     		.then(response => {
     			if (response.ok) {
-    				var button = document.getElementById("move_everyone");
+    				var button = document.getElementById("free_wall");
     				button.disabled = "disabled";
     				button.style.backgroundColor = "#f44336";
     				console.log("success");
@@ -253,21 +224,26 @@
     		.catch(error => {console.error('Error:', error)});
     	}
     
-    	const list = ["item_position", "item", "other_item", "name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "other_move_list", "board"]
-    	// const ip = "192.168.100.170";
-	// const socket = new WebSocket(`ws://${ip}/api/ws`);
-    	const ip = "quoridor.k175.net";
-    	const socket = new WebSocket(`wss://${ip}/api/ws`);
+    
+    	const list = ["item_position", "item", "other_item", "name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "board"]
+    	const ip = "10.10.10.32";
+		const socket = new WebSocket(`ws://${ip}/api/ws`);
+    	// const ip = "quoridor.k175.net";
+    	// const socket = new WebSocket(`wss://${ip}/api/ws`);
     	
     	socket.addEventListener("open", (event) => {
     		console.log("接続が開かれました");
+			setInterval(() => {
+				socket.send("ping")
+				console.log("ping")
+			}, 10000);
     	});
     
     	socket.addEventListener("message", (event) => {
     		console.log("メッセージを受信しました:", event.data);
     		obj = JSON.parse(event.data);
     		if (obj.hasOwnProperty("message")) {
-    			if (obj.message !== "ping") {
+    			if (obj.message !== "pong") {
     				var body = document.body;
     				body.remove();
     				var body = document.createElement("body");
@@ -283,6 +259,7 @@
     				element.textContent = "";
     			}
     			Object.entries(obj).forEach(([key, value]) => {
+                    console.log(key, value);
     				var element = document.getElementById(key);
     				console.log(element, key, value);
     				element.textContent = JSON.stringify(value);
@@ -310,17 +287,13 @@
     <div class="container">
         <div class="panel">
             <h2>ゲームコントロール</h2>
-            <div class="button-group">
-                <button style="background-color: #f44336;" id="get_wall" onclick="get_wall()" disabled>get wall</button>
-                <button style="background-color: #f44336;" id="twice" onclick="twice()" disabled>twice</button>
-            </div>
             <div class="input-group">
                 <input type="text" id="move_x" placeholder="x">
                 <input type="text" id="move_y" placeholder="y">
             </div>
             <div class="button-group">
                 <button style="background-color: #04AA6D;" onclick="move()">move</button>
-                <button style="background-color: #f44336;" id="move_everyone" onclick="move_everyone()" disabled>move everyone</button>
+                <button style="background-color: #f44336;" id="twice" onclick="twice()" disabled>twice</button>
             </div>
             <div class="input-group">
                 <input type="text" id="wall_x" placeholder="x">
@@ -329,32 +302,20 @@
             </div>
             <div class="button-group">
                 <button style="background-color: #04AA6D;" onclick="wall()">put wall</button>
-            </div>
-            <div class="input-group">
-                <input type="text" id="wall_x1" placeholder="x1">
-                <input type="text" id="wall_y1" placeholder="y1">
-                <input type="text" id="wall_type1" placeholder="wall type1">
-            </div>
-            <div class="input-group">
-                <input type="text" id="wall_x2" placeholder="x2">
-                <input type="text" id="wall_y2" placeholder="y2">
-                <input type="text" id="wall_type2" placeholder="wall type2">
-            </div>
-            <div class="button-group">
+                <button style="background-color: #f44336;" id="free_wall" onclick="free_wall()" disabled>get wall</button>
                 <button style="background-color: #f44336;" id="break_wall" onclick="break_wall()" disabled>break wall</button>
-                <button style="background-color: #f44336;" id="replace_wall" onclick="replace_wall()" disabled>replace wall</button>
             </div>
         </div>
 
         <div class="panel">
             <h2>ゲーム情報</h2>
             <div class="info-item">
-                <span class="info-label">移動リスト:</span>
-                <p id="move_list"></p>
+                <span class="info-label">ルーム名:</span>
+                <p id="room_name"></p>
             </div>
             <div class="info-item">
-                <span class="info-label">相手の移動リスト:</span>
-                <p id="other_move_list"></p>
+                <span class="info-label">移動リスト:</span>
+                <p id="move_list"></p>
             </div>
             <div class="info-item">
                 <span class="info-label">壁リスト:</span>
