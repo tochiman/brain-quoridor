@@ -22,7 +22,7 @@ router = APIRouter(prefix=root)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://quoridor.k175.net", "http://192.168.100.170"],
+    allow_origins=["https://localhost:3000"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
