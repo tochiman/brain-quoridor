@@ -1,5 +1,4 @@
 import Head from "next/head";
-import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import * as React from 'react';
@@ -7,25 +6,15 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
-import CancelIcon from '@mui/icons-material/Cancel';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import TextField from '@mui/material/TextField';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
-import { Padding } from "@mui/icons-material";
 import { rulesContent } from '../styles/rule.js';
 import { rules_itemContent } from '../styles/rule_item.js';
-
-
+import { useForm } from "react-hook-form";
+import Router from 'next/router';
+//import styles from "@/styles/start.module.css"
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -55,7 +44,6 @@ const styleRuleModal = {
   overflow: "scroll",
 };
 
-
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -63,20 +51,24 @@ interface TabPanelProps {
 }
 
 function CustomTabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
-  
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}
-      >
-        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-      </div>
-    );
-  }
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 function a11yProps(index: number) {
   return {
@@ -85,73 +77,81 @@ function a11yProps(index: number) {
   };
 }
 
- 
-export default function main(){
+interface RoomData {
+  roomName: string;
+  userName: string;
+  action: 'create' | 'join';
+}
+
+export default function main() {
+  const { register, handleSubmit, formState: { isValid } } = useForm<RoomData>({
+    mode: "onChange"
+  });
+
   const [openBattleModal, setOpenBattleModal] = React.useState(false);
   const [openRuleModal, setOpenRuleModal] = React.useState(false);
   const [value, setValue] = React.useState(0);
-  const [roomName, setRoomName] = React.useState('');
-  const [userName, setUserName] = React.useState('');
+  const [lockButton, setLockButton] = React.useState(false);
 
   const handleOpenBattleModal = () => setOpenBattleModal(true);
   const handleCloseBattleModal = () => setOpenBattleModal(false);
   const handleOpenRuleModal = () => setOpenRuleModal(true);
   const handleCloseRuleModal = () => setOpenRuleModal(false);
+
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 
-  const [lockButton, setLockButton] = React.useState(false);
+  const onSubmit = (data: RoomData) => {
+    setLockButton(true);
+    if (data.action === 'create') {
+      createRoom(data);
+    } else {
+      joinRoom(data);
+    }
+  };
 
-  //作成する際のapiを送る
-  const createRoom = () => {
-    setLockButton(true)
-    const postData = {
-      board_name: roomName,
-      user_name: userName
-    };
-
+  const createRoom = (data: RoomData) => {
+    const postData = { board_name: data.roomName, user_name: data.userName };
     fetch('/api/create', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        setLockButton(false)
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        setLockButton(false)
-      });
+    .then(response => {
+      if (response.status === 200) {
+        Router.push('/game');
+      } else if (response.status === 400) {
+        alert('既に存在します');
+      }
+      setLockButton(false);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      setLockButton(false);
+    });
   };
 
-  //参加する際のapiを送る
-  const joinRoom = () => {
-    const postData = {
-      board_name: roomName,
-      user_name: userName
-    };
-
+  const joinRoom = (data: RoomData) => {
+    const postData = { board_name: data.roomName, user_name: data.userName };
     fetch('/api/join', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+    .then(response => {
+      if (response.status === 200) {
+        Router.push('/game');
+      } else if (response.status === 400) {
+        alert('参加できませんでした');
+      }
+      setLockButton(false);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      setLockButton(false);
+    });
   };
-
 
   return (
     <>
@@ -161,10 +161,9 @@ export default function main(){
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-    
-        <main className={`${styles.main} ${inter.className}`}>
-          <h1>Brain Quoridall</h1>
-          <div>
+      <main className={`${styles.main} ${inter.className}`}>
+        <h1>Brain Quoridall</h1>
+        <div className="button-container">
           <Button onClick={handleOpenBattleModal}>知恵比べ</Button>
           <Modal
             open={openBattleModal}
@@ -174,7 +173,7 @@ export default function main(){
           >
             <Box sx={styleModal} pt={2} pb={"330px"} pl={2} pr={2}>
               <Box onClick={handleCloseBattleModal} sx={{textAlign:"right"}}>
-              <CloseIcon ></CloseIcon>
+                <CloseIcon></CloseIcon>
               </Box>
               <Typography id="modal-modal-title" variant="h6" component="h2">
                 <Box sx={{ width: '100%' }}>
@@ -184,26 +183,19 @@ export default function main(){
                       <Tab label="AI" {...a11yProps(1)} />
                     </Tabs>
                   </Box>
-                  
                   <CustomTabPanel value={value} index={0}>
-                    <Box
-                      component="form"
-                      sx={{
-                        '& > :not(style)': { m: 1, width: '25ch' },
-                      }}
-                      noValidate
-                      autoComplete="off"
-                    >
-                      <TextField id="outlined-basic" label="ルーム名" variant="outlined" onChange={(e) => setRoomName(e.target.value)}/>
-                      <TextField id="outlined-basic" label="ユーザー名" variant="outlined" onChange={(e) => setUserName(e.target.value)}/>
-                      
-                    </Box>
-                    {lockButton ? 
-                      <Button onClick={createRoom} disabled>作成</Button>
-                      :
-                      <Button onClick={createRoom}>作成</Button>
-                    }                    
-                    <Button onClick={joinRoom}>参加</Button>                  
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                      <Box sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}>
+                        <TextField {...register("roomName", { required: true, maxLength: {value: 15, message: "15文字までです"}})} label="ルーム名" variant="outlined" type="text" inputProps={{ maxLength: 15 }}/>
+                        <TextField {...register("userName", { required: true, maxLength: {value: 15, message: "15文字までです"}})} label="ユーザー名" variant="outlined" type="text" inputProps={{ maxLength: 15 }}/>
+                      </Box>
+                      <Button onClick={() => handleSubmit((data) => onSubmit({ ...data, action: 'create' }))()} disabled={!isValid || lockButton}>
+                        作成
+                      </Button>
+                      <Button onClick={() => handleSubmit((data) => onSubmit({ ...data, action: 'join' }))()} disabled={!isValid || lockButton}>
+                        参加
+                      </Button>
+                    </form>
                   </CustomTabPanel>
 
                   <CustomTabPanel value={value} index={1}>
@@ -214,76 +206,50 @@ export default function main(){
                         }}
                         noValidate
                         autoComplete="off"
-                    >
-                      <TextField id="outlined-basic" label="ユーザー名" variant="outlined" />
-                        
+                    >                        
                     </Box>
                     <Button>対戦</Button>
                   </CustomTabPanel>
+
                 </Box>
               </Typography>
             </Box>
           </Modal>
-          </div>
-
-
-          <Button onClick={handleOpenRuleModal}>ルール</Button>
-          <Modal
-            open={openRuleModal}
-            onClose={handleCloseRuleModal}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-          >
-            <Box sx={styleRuleModal} pt={2} pb={"330px"} pl={2} pr={2}>
-              <Box onClick={handleCloseRuleModal} sx={{textAlign:"right"}}>
-                <CloseIcon ></CloseIcon>
-              </Box>
-              <Typography id="modal-modal-title" variant="h6" component="h2">
-                <Box sx={{ width: '100%' }}>
-                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-                      <Tab label="基本" {...a11yProps(0)} />
-                      <Tab label="アイテム" {...a11yProps(1)} />
-                    </Tabs>
+        </div>
+        <Button onClick={handleOpenRuleModal}>ルール</Button>
+        <Modal
+          open={openRuleModal}
+          onClose={handleCloseRuleModal}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={styleRuleModal} pt={2} pb={"330px"} pl={2} pr={2}>
+            <Box onClick={handleCloseRuleModal} sx={{textAlign:"right"}}>
+              <CloseIcon></CloseIcon>
+            </Box>
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              <Box sx={{ width: '100%' }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                  <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+                    <Tab label="基本" {...a11yProps(0)} />
+                    <Tab label="アイテム" {...a11yProps(1)} />
+                  </Tabs>
+                </Box>
+                <CustomTabPanel value={value} index={0}>
+                  <Box component="form" sx={{ '& > :not(style)': { m: 1, width: '25ch' } }} noValidate autoComplete="off">
                   </Box>
-
-                  <CustomTabPanel value={value} index={0}>
-                    <Box
-                      component="form"
-                      sx={{
-                        '& > :not(style)': { m: 1, width: '25ch' },                       
-                      }}
-                      noValidate
-                      autoComplete="off"
-                                
-                    >      
-                    </Box>  
-                    <div dangerouslySetInnerHTML={{ __html: rulesContent }} />
-                  </CustomTabPanel>
-
-                  <CustomTabPanel value={value} index={1}>
-                      <Box
-                        component="form"
-                        sx={{
-                          '& > :not(style)': { m: 1, width: '25ch' },
-                        }}
-                        noValidate
-                        autoComplete="off"
-                      >
-                      </Box>
-                      <div dangerouslySetInnerHTML={{ __html: rules_itemContent }} />
-                  </CustomTabPanel>
-
-                </Box>
-              </Typography>
-            </Box>
-          </Modal>
-
-
-        </main>
-      
+                  <div dangerouslySetInnerHTML={{ __html: rulesContent }} />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={1}>
+                  <Box component="form" sx={{ '& > :not(style)': { m: 1, width: '25ch' } }} noValidate autoComplete="off">
+                  </Box>
+                  <div dangerouslySetInnerHTML={{ __html: rules_itemContent }} />
+                </CustomTabPanel>
+              </Box>
+            </Typography>
+          </Box>
+        </Modal>
+      </main>
     </>
   );
-
 }
-
