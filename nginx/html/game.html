@@ -119,13 +119,13 @@
     		.catch(error => {console.error('Error:', error)});
     	}
     
-    	function get_wall() {
-    		fetch(`/api/get_wall`, {
+    	function free_wall() {
+    		fetch(`/api/free_wall`, {
     			method: 'POST'
     		})
     		.then(response => {
     			if (response.ok) {
-    				var button = document.getElementById("get_wall");
+    				var button = document.getElementById("free_wall");
     				button.disabled = "disabled";
     				button.style.backgroundColor = "#f44336";
     				console.log("success");
@@ -226,7 +226,7 @@
     
     
     	const list = ["item_position", "item", "other_item", "name", "turn", "position", "wall", "color", "other_name", "other_position", "other_wall", "move_list", "board"]
-    	const ip = "192.168.100.170";
+    	const ip = "10.10.10.32";
 		const socket = new WebSocket(`ws://${ip}/api/ws`);
     	// const ip = "quoridor.k175.net";
     	// const socket = new WebSocket(`wss://${ip}/api/ws`);
@@ -311,7 +311,7 @@
             <h2>ゲーム情報</h2>
             <div class="info-item">
                 <span class="info-label">ルーム名:</span>
-                <p id="board_name"></p>
+                <p id="room_name"></p>
             </div>
             <div class="info-item">
                 <span class="info-label">移動リスト:</span>

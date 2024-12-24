@@ -9,7 +9,7 @@
 			const user = document.getElementById('userName').value;
 
 			const postData = {
-				board_name: board,
+				room_name: board,
 				user_name: user
 			};
 			fetch(`/api/create`, {
@@ -31,7 +31,7 @@
 			const user = document.getElementById('userName').value;
 
 			const postData = {
-				board_name: board,
+				room_name: board,
 				user_name: user
 			};
 			fetch(`/api/join`, {

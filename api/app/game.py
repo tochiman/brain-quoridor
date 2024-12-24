@@ -318,13 +318,13 @@ async def simulate(state):
 
 
 class Mode:
-    def __init__(self, board_name="AI Room"):
+    def __init__(self, room_name="AI Room"):
         self.player = [None, None]
         self.state = QuoridorState()
         self.uids = [None, None]
         self.ws = [None, None]
         self.player_name = [None, None]
-        self.board_name = board_name
+        self.room_name = room_name
         self.is_start = False
         self.item_list = ["free_wall", "break_wall", "twice"]
 
@@ -337,7 +337,7 @@ class Mode:
         self.ws[self.uids.index(uid)] = None
 
 
-    def set_item(self):
+    def set_item_position(self):
         item = random.sample(self.item_list, 2)
         self.state.items[(2,2)] = item[0]
         self.state.items[(6,6)] = item[0]
@@ -362,7 +362,6 @@ class Mode:
     async def notify_ws(self, uid = None):
         state = self.state
         board = state.board
-        board_name = self.board_name
 
         for i in range(2):
             ws = self.ws[i]
@@ -373,8 +372,6 @@ class Mode:
                 if uid != _uid:
                     continue
             turn = self.is_turn(_uid)
-            name = self.player_name[i]
-            other_name = self.player_name[1-i]
             position = state.player_positions[i]
             other_position = state.player_positions[1-i]
             wall = state.walls[i]
@@ -384,8 +381,6 @@ class Mode:
             item = state.item[i]
             other_item = state.item[i-1]
             data = {
-                    "name": name,
-                    "other_name": other_name,
                     "turn": turn,
                     "position": position,
                     "other_position": other_position,
@@ -393,7 +388,6 @@ class Mode:
                     "other_wall": other_wall,
                     "color": color,
                     "board": board,
-                    "board_name": board_name,
                     "item_position": item_position,
                     "item": item,
                     "other_item": other_item
@@ -443,9 +437,7 @@ class Mode:
 
     
     async def win(self, uid):
-        logger.info(f"{uid = }")
         for _uid, ws in zip(self.uids, self.ws):
-            logger.info(f"{_uid = }")
             if _uid == uid:
                 await ws.send_json({"message": "勝利!"})
             else:
@@ -520,3 +512,10 @@ class Mode:
             state.make_move(move)
         
             await self.send(None)
+
+    def get_info(self, uid):
+        room_name = self.room_name
+        name = self.player_name[self.uids.index(uid)]
+        other_name = self.player_name[1-self.uids.index(uid)]
+        return {'room_name':room_name, 'name':name, 'other_name':other_name}
+    

@@ -22,7 +22,7 @@ router = APIRouter(prefix=root)
 games = {}
 
 class GameRequest(BaseModel):
-    board_name: str
+    room_name: str
     user_name: str
 
 
@@ -46,8 +46,8 @@ class ItemWallRequest(BaseModel):
     wall_type2: str
 
 
-def gen_bid(board_name):
-    return hashlib.sha512(board_name.encode("utf-8")).hexdigest()
+def gen_bid(room_name):
+    return hashlib.sha512(room_name.encode("utf-8")).hexdigest()
 
 
 def gen_id():
@@ -63,6 +63,7 @@ async def ai():
         uid = gen_id()
         game.set_is_start()
         game.set_player(2, uid) 
+        game.set_item_position()
         games[bid] = game
 
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
@@ -77,7 +78,7 @@ async def create(
     game_request: GameRequest
     ):
 
-    bid = gen_bid(game_request.board_name)
+    bid = gen_bid(game_request.room_name)
     game = games.get(bid)
 
     if game:
@@ -86,10 +87,10 @@ async def create(
             game = None
 
     if game is None:
-        game = Mode(game_request.board_name)
+        game = Mode(game_request.room_name)
         uid = gen_id()
         game.set_player(0, uid, game_request.user_name) 
-        game.set_item()
+        game.set_item_position()
         games[bid] = game
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
         response.set_cookie(key="bid", value=bid)
@@ -107,7 +108,7 @@ async def join(
     ):
     cbid = bid
     cuid = uid
-    bid = gen_bid(game_request.board_name)
+    bid = gen_bid(game_request.room_name)
     game = games.get(bid)
     if game is not None:
         if not game.is_start:
@@ -269,12 +270,26 @@ async def surrender(
     if game is None:
         return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
 
-    if game.get_user:
+    if game.get_user(uid):
         game.lose(uid)
         return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
 
     return JSONResponse(content = {"message":"ユーザが存在しません"}, status_code=400)
     
+@router.get("/info")
+async def get_info(
+    bid: str | None = Cookie(default = None),
+    uid: str | None = Cookie(default = None)    
+    ):
+    game = games.get(bid)
+    if game is None:
+        return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
+
+    if game.get_user(uid):
+        info = game.get_info(uid)
+        return JSONResponse(content = info, status_code=200)
+
+    return JSONResponse(content = {"message":"ユーザが存在しません"}, status_code=400)
 
 @router.websocket("/ws")
 async def websocket(
