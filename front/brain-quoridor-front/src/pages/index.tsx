@@ -112,7 +112,7 @@ export default function main() {
   };
 
   const createRoom = (data: RoomData) => {
-    const postData = { board_name: data.roomName, user_name: data.userName };
+    const postData = { room_name: data.roomName, user_name: data.userName };
     fetch('/api/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -133,7 +133,7 @@ export default function main() {
   };
 
   const joinRoom = (data: RoomData) => {
-    const postData = { board_name: data.roomName, user_name: data.userName };
+    const postData = { room_name: data.roomName, user_name: data.userName };
     fetch('/api/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

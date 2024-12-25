@@ -13,22 +13,21 @@
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.1.0",
     "@mui/icons-material": "^6.1.10",
-    "@mui/material": "^6.1.10",
+    "@mui/material": "^6.3.0",
     "@mui/styled-engine-sc": "^6.1.10",
-    "next": "14.2.10",
-    "styled-components": "^6.1.13",
     "cookies-next": "^5.0.2",
+    "next": "14.2.10",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0",
     "react-hook-form": "^7.54.0",
-    "styled-components": "^6.1.13"  
+    "styled-components": "^6.1.13"
   },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "typescript": "^5",
     "eslint": "^9",
-    "eslint-config-next": "15.1.2"
+    "eslint-config-next": "15.1.2",
+    "typescript": "^5"
   }
 }
