@@ -3,6 +3,7 @@ import { styled } from"@mui/material/styles";
 import React, {HTMLAttributes, useState, useEffect, useRef} from "react";
 import { Grid, ListClassKey, Paper, PaperProps, Typography } from "@mui/material";
 import Head from "next/head";
+import { ConstructionOutlined } from "@mui/icons-material";
 
 function range(start: number, end: number): number[] {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -33,15 +34,13 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   }
 
   interface WebSocketData {
-      "name": string
-      "other_name": string
       "turn": boolean
       "position": number
       "other_position": number
       "wall": number
       "other_wall": number
       "color": string
-      "move_list": number
+      "move_list": any
       "board": any
       "item_position": number
       "item": any
@@ -153,6 +152,7 @@ function piece_wall(x:number, y:number, type:string) {
   });
 }
 
+
 //Websocketの呼び出し
 const socketRef = useRef<WebSocket>()
 const [isConnected, setIsConnected] = useState<boolean>(false)
@@ -172,7 +172,7 @@ useEffect(() => {
 
     socketRef.current.onmessage = function (event) {
       const socketdata=JSON.parse(event.data)
-      if (socketdata.message !== "ping") {
+      if (socketdata.message !== "pong") {
         setreceiveddata(socketdata)
         console.log(socketdata)
       }
@@ -285,8 +285,13 @@ useEffect(() => {
                                           return "rgb(0, 0, 0)"
                                       }
                                       else{
-                                        for (let i:number=0; i<receiveddata?.move_list?.length; i++){
-                                          if((receiveddata?.move_list?.[i][0] === col-1) && (((receiveddata?.move_list?.[i][1])*2) === row-1)){
+                                        let canmove:any = []
+                                        for (let i:number=0; i<4; i++){
+                                          if (receiveddata?.move_list?.[i][0] === "move")
+                                            canmove.push(receiveddata?.move_list?.[i])
+                                        }
+                                        for (let i:number=0; i<canmove.length; i++){
+                                          if((canmove[i][1] === col-1) && (((canmove[i][2])*2) === row-1)){
                                             if (receiveddata?.color === "b")
                                               return "rgba(55, 55, 55, 0.8)"
                                             else
@@ -347,8 +352,13 @@ useEffect(() => {
                                           return "rgb(0, 0, 0)"
                                       }
                                       else{
-                                        for (let i:number=0; i<receiveddata?.move_list?.length; i++){
-                                          if((receiveddata?.move_list?.[i][0] === col-1) && (((receiveddata?.move_list?.[i][1])*2) === row-1)){
+                                        let canmove:any = []
+                                        for (let i:number=0; i<4; i++){
+                                          if (receiveddata?.move_list?.[i][0] === "move")
+                                            canmove.push(receiveddata?.move_list?.[i])
+                                        }
+                                        for (let i:number=0; i<canmove.length; i++){
+                                          if((canmove[i][1] === col-1) && (((canmove[i][2])*2) === row-1)){
                                             if (receiveddata?.color === "b")
                                               return "rgba(55, 55, 55, 0.8)"
                                             else
