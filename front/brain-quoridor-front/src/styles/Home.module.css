@@ -9,29 +9,73 @@
   transform: scale(1);
 }
 
+.verticalgrid{
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(3, auto);
+  gap: 10px;
+}
+
+.holdwalltop{
+  width: 700px;
+  height: 100px;
+  z-index: 1;
+  background-color: rgb(100, 100, 99);
+  display: flex;
+  /* 
+  position: 
+  absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0; */
+  margin: auto;
+  margin-top: 10px;
+}
+
+.holdwallbottom{
+  width: 700px;
+  height: 100px;
+  z-index: 1;
+  background-color: rgb(100, 100, 99);
+  display: flex;
+  /* 
+  position: 
+  absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0; */
+  margin: auto;
+  margin-bottom: 10px;
+}
+
 .dodai{
   width: 700px;
   height: 700px;
   z-index: 1;
   background-color: rgb(44, 26, 1);
-  position: absolute;
+  display: flex;
+  /* position: absolute;
   right: 0;
   left: 0;
   top: 0;
-  bottom: 0;
+  bottom: 0; */
   margin: auto;
 }
 
 .gridField {
   width: 620px;
   height: 620px;
-  position: absolute;
+  display: flex;
+  /* position: absolute;
   right: 0;
   left: 0;
   top: 0;
-  bottom: 0;
+  bottom: 0; */
   margin: auto;
 }
+
 
 .banmenCenter {
   display: flex;

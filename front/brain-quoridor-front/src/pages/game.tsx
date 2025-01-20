@@ -141,7 +141,6 @@ function piece_wall(x:number, y:number, type:string) {
   .then(response => {
     if (response.status === 200){
       console.log("sucsses")
-      setwall((prevwall:any) => ([...prevwall, [x,y]]))
     }else if (response.status === 400){
       console.log("failed")
     }
@@ -189,6 +188,8 @@ useEffect(() => {
           <link rel="icon" href="/favicon.ico" />
         </Head>
         <main>
+        <div className={styles.verticalgrid}>
+        <Paper className={styles.holdwalltop}></Paper>
           <Paper className={styles.dodai}>
             <Grid container item
               className={`${styles.relativeScale} ${styles.gridField}`}             
@@ -214,9 +215,9 @@ useEffect(() => {
                                       if (hovered && row === hoveredrowid &&  (col === hoveredcolid || col === hoveredcolid+1 )){
                                         return "rgba(102, 102, 102, 0.5)"
                                       } else{
-                                      for (let i:number=0; i<wall.length; i++){
-                                        if((wall[i][0] === col-1) && (((wall[i][1])*2) === row)){
-                                            return "rgb(255, 0, 0)"
+                                      for (let i:number=0; i<receiveddata?.board?.length; i++){
+                                        if(((receiveddata?.board[i][0] === col-1) || (receiveddata?.board[i][0] === col-2)) && (((receiveddata?.board[i][1])*2) === row-2) && (receiveddata?.board[i][2] === "h")){
+                                            return "rgb(248, 0, 215)"
                                           }
                                         }
                                       return "rgb(44, 26, 1)"
@@ -245,9 +246,9 @@ useEffect(() => {
                                       if (hovered && row === hoveredrowid &&  (col === hoveredcolid || col === hoveredcolid+1 )){
                                         return "rgba(102, 102, 102, 0.5)"
                                       } else{
-                                      for (let i:number=0; i<wall.length; i++){
-                                        if((wall[i][0] === col-1) && (((wall[i][1])*2) === row)){
-                                            return "rgb(255, 0, 0)"
+                                      for (let i:number=0; i<receiveddata?.board?.length; i++){
+                                        if(((receiveddata?.board[i][0] === col-1) || (receiveddata?.board[i][0] === col-2)) && (((receiveddata?.board[i][1])*2) === row-2) && (receiveddata?.board[i][2] === "h")){
+                                            return "rgb(248, 0, 215)"
                                           }
                                         }
                                       return "rgb(44, 26, 1)"
@@ -298,6 +299,11 @@ useEffect(() => {
                                             return "rgba(200, 200, 200, 0.4)"
                                           }
                                         }
+                                        for (let i:number=0; i<receiveddata?.item_position?.length; i++){
+                                          if ((receiveddata?.item_position?.[i][0] === col-1) && (((receiveddata?.item_position?.[i][1])*2) === row-1)){
+                                            return "rgb(53, 168, 7)"
+                                          }
+                                        }
                                         return "rgb(190, 117, 13)"
                                       }
                                   })()
@@ -316,9 +322,9 @@ useEffect(() => {
                                       if (hovered && (row === hoveredrowid || row === hoveredrowid+2) && col === hoveredcolid){
                                         return "rgba(102, 102, 102, 0.5)"
                                     } else{
-                                      for (let i:number=0; i<wall.length; i++){
-                                        if((wall[i][0] === col-1) && (((wall[i][1])*2) === row-1)){
-                                            return "rgb(255, 0, 0)"
+                                      for (let i:number=0; i<receiveddata?.board?.length; i++){
+                                        if((receiveddata?.board[i][0] === col-1) && ((((receiveddata?.board[i][1])*2) === row-1) || (((receiveddata?.board[i][1])*2) === row-3)) && (receiveddata?.board[i][2] === "v")){
+                                            return "rgb(248, 0, 215)"
                                           }
                                         }
                                       return "rgb(44, 26, 1)"
@@ -380,6 +386,8 @@ useEffect(() => {
               ))}
             </Grid>
           </Paper>
+          <Paper className={styles.holdwallbottom}>残りの壁</Paper>
+          </div>
         </main>
       </>
     );
