@@ -18,8 +18,6 @@ interface SettingModalProps {
   handlePlayBGM: (url: string) => void;
   handlePauseBGM: () => void;
   isPlaying: boolean;
-  roomName: string; // 追加
-  userName: string; // 追加
 }
 
 interface TabPanelProps {
@@ -52,7 +50,6 @@ function a11yProps(index: number) {
   };
 }
 
-
 const SettingModal: React.FC<SettingModalProps> = ({
   open,
   handleClose,
@@ -61,8 +58,6 @@ const SettingModal: React.FC<SettingModalProps> = ({
   handlePlayBGM,
   handlePauseBGM,
   isPlaying,
-  roomName,
-  userName,
 }) => {
   const [value, setValue] = useState(0); // 初期タブ設定
 
@@ -95,7 +90,7 @@ const SettingModal: React.FC<SettingModalProps> = ({
           </div>
 
           <CustomTabPanel value={value} index={0}>
-            <RoomContent roomName={roomName} userName={userName} />
+            <RoomContent />
           </CustomTabPanel>
 
           <CustomTabPanel value={value} index={1}>
