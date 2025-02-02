@@ -1,7 +1,7 @@
 import styles from "@/styles/Home.module.css";
 import { styled } from"@mui/material/styles";
 import React, {HTMLAttributes, useState, useEffect, useRef} from "react";
-import { Grid, ListClassKey, Paper, PaperProps, Typography } from "@mui/material";
+import { Grid, ListClassKey, Paper, PaperProps, Typography, Button } from "@mui/material";
 import Head from "next/head";
 import { ConstructionOutlined } from "@mui/icons-material";
 
@@ -189,7 +189,7 @@ useEffect(() => {
         </Head>
         <main>
         <div className={styles.verticalgrid}>
-        <Paper className={styles.holdwalltop}></Paper>
+        <Paper className={styles.holdwalltop}>残りの壁：{receiveddata?.other_wall}枚</Paper>
           <Paper className={styles.dodai}>
             <Grid container item
               className={`${styles.relativeScale} ${styles.gridField}`}             
@@ -287,7 +287,7 @@ useEffect(() => {
                                       }
                                       else{
                                         let canmove:any = []
-                                        for (let i:number=0; i<4; i++){
+                                        for (let i:number=0; i<receiveddata?.move_list?.length; i++){
                                           if (receiveddata?.move_list?.[i][0] === "move")
                                             canmove.push(receiveddata?.move_list?.[i])
                                         }
@@ -386,7 +386,10 @@ useEffect(() => {
               ))}
             </Grid>
           </Paper>
-          <Paper className={styles.holdwallbottom}>残りの壁</Paper>
+          <Paper className={styles.holdwallbottom}>残りの壁：{receiveddata?.wall}枚</Paper>
+          </div>
+          <div className="btn">
+            <a href="https://x.com" target="_blank" className="Optionbtn">設定</a>
           </div>
         </main>
       </>
