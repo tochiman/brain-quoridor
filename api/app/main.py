@@ -2,7 +2,6 @@ import os
 import asyncio
 import hashlib
 import json
-
 import datetime
 
 from fastapi import FastAPI, APIRouter, Cookie, WebSocket, Response, BackgroundTasks
@@ -106,8 +105,8 @@ async def create(
         games[bid] = game
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
         expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
-        response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
-        response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        response.set_cookie(key="bid", value=bid, secure=False, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        response.set_cookie(key="uid", value=uid, secure=False, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
         return response
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 400)
@@ -132,8 +131,8 @@ async def join(
 
             response = JSONResponse(content = {"message": "参加しました"}, status_code = 200)
             expires = datetime.datetime.utcnow() + datetime.timedelta(days=30)
-            response.set_cookie(key="bid", value=bid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
-            response.set_cookie(key="uid", value=uid, secure=True, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            response.set_cookie(key="bid", value=bid, secure=False, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            response.set_cookie(key="uid", value=uid, secure=False, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
             return response
         else:
             if bid == cbid and cuid in game.uids:
@@ -286,7 +285,7 @@ async def surrender(
         return JSONResponse(content = {"message":"ゲームが存在しません"}, status_code=400)
 
     if game.get_user(uid):
-        game.lose(uid)
+        await game.lose(uid)
         return JSONResponse(content = {"message": "正常に処理しました"}, status_code=200)
 
     return JSONResponse(content = {"message":"ユーザが存在しません"}, status_code=400)

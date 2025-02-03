@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Typography, Box } from '@mui/material';
 import styles from '../styles/settingModal.module.css'; // CSSをインポート
+import Router from 'next/router'
 
 interface RoomContentProps {
     roomName: string;
@@ -8,6 +9,8 @@ interface RoomContentProps {
 }
 
 const RoomContent: React.FC<RoomContentProps> = ({ roomName, userName }) => {
+    const [roomNameInfo, setRoomNameInfo] = useState<string>("")
+    const [userNameInfo, setUserNameInfo] = useState<string>("")
     // 降参ボタンを押したときの処理
     const handleSurrender = async () => {
         try {
@@ -21,6 +24,7 @@ const RoomContent: React.FC<RoomContentProps> = ({ roomName, userName }) => {
             if (response.ok) {
                 const data = await response.json();
                 alert(data.message); // 成功メッセージを表示
+                Router.push("/")
             } else {
                 const errorData = await response.json();
                 alert(`エラー: ${errorData.message}`); // エラーメッセージを表示
@@ -33,26 +37,54 @@ const RoomContent: React.FC<RoomContentProps> = ({ roomName, userName }) => {
 
     // ルーム退出ボタンを押したときの処理
     const handleLeaveRoom = async () => {
-        try {
-            const response = await fetch('/api/leave_room', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+        Router.push("/")
+        // try {
+        //     const response = await fetch('/api/leave_room', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //     });
 
-            if (response.ok) {
-                const data = await response.json();
-                alert(data.message); // 成功メッセージを表示
-            } else {
-                const errorData = await response.json();
-                alert(`エラー: ${errorData.message}`); // エラーメッセージを表示
-            }
-        } catch (error) {
-            console.error('Network Error:', error);
-            alert('ネットワークエラーが発生しました');
-        }
+        //     if (response.ok) {
+        //         const data = await response.json();
+        //         alert(data.message); // 成功メッセージを表示
+        //     } else {
+        //         const errorData = await response.json();
+        //         alert(`エラー: ${errorData.message}`); // エラーメッセージを表示
+        //     }
+        // } catch (error) {
+        //     console.error('Network Error:', error);
+        //     alert('ネットワークエラーが発生しました');
+        // }
     };
+
+    // ルーム情報取得
+    useEffect(() => {
+        const handleRoominfo = async () => {
+            try {
+                const response = await fetch('/api/info', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+    
+                if (response.ok) {
+                    const data = await response.json();
+                    setRoomNameInfo(data.room_name)
+                    setUserNameInfo(data.name)
+                } else {
+                    const errorData = await response.json();
+                    alert(`エラー: ${errorData.message}`); // エラーメッセージを表示
+                }
+            } catch (error) {
+                console.error('Network Error:', error);
+                alert('ネットワークエラーが発生しました');
+            }
+        };
+        handleRoominfo()
+    }, [])
 
     return (
         <Box>
@@ -60,10 +92,10 @@ const RoomContent: React.FC<RoomContentProps> = ({ roomName, userName }) => {
                 ルーム情報
             </Typography>
             <Typography className={styles.roomInfo}>
-                ルーム名: {roomName}
+                ルーム名: {roomNameInfo}
             </Typography>
             <Typography className={styles.roomInfo}>
-                ユーザー名: {userName}
+                ユーザー名: {userNameInfo}
             </Typography>
             <Box mt={2}>
                 <Button

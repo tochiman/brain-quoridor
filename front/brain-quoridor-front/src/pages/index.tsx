@@ -83,6 +83,25 @@ interface RoomData {
   action: 'create' | 'join';
 }
 
+function taisen_ai (){
+  fetch('/api/ai', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => {
+    if (response.status === 200){
+      Router.push('/game');
+    }else if (response.status === 400){
+      console.log("failed")
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+
 export default function main() {
   const { register, handleSubmit, formState: { isValid } } = useForm<RoomData>({
     mode: "onChange"
@@ -208,7 +227,7 @@ export default function main() {
                         autoComplete="off"
                     >                        
                     </Box>
-                    <Button>対戦</Button>
+                    <Button onClick={() => taisen_ai()}>対戦</Button>
                   </CustomTabPanel>
 
                 </Box>

@@ -1,16 +1,26 @@
 import styles from "@/styles/Home.module.css";
+import { OverridableStringUnion,ButtonPropsColorOverrides } from "@mui/types";
 import { styled } from"@mui/material/styles";
 import React, {HTMLAttributes, useState, useEffect, useRef} from "react";
 import { Grid, ListClassKey, Paper, PaperProps, Typography, Button, stepLabelClasses } from "@mui/material";
 import Head from "next/head";
 import { ConstructionOutlined } from "@mui/icons-material";
 import SettingModal from '../components/settingModal';
+import Router from 'next/router';
 
 function range(start: number, end: number): number[] {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 }
 
 export default function Home() {  //useStateの宣言 ホバーの真偽宣言
+  const [breakWall, setBreakWall] = useState<boolean>(false);
+  const [twice, setTwice] = useState<boolean>(false);
+  const [freeWall, setFreeWall] = useState<boolean>(false);
+
+  const [breakWallClick, setBreakWallClick] = useState<OverridableStringUnion<"info" | "inherit" | "primary" | "secondary" | "success" | "error" | "warning", ButtonPropsColorOverrides> | undefined>("info");
+  const [twiceClick, setTwiceClick] = useState<OverridableStringUnion<"info" | "inherit" | "primary" | "secondary" | "success" | "error" | "warning", ButtonPropsColorOverrides> | undefined>("info");
+  const [freeWallClick, setFreeWallClick] = useState<OverridableStringUnion<"info" | "inherit" | "primary" | "secondary" | "success" | "error" | "warning", ButtonPropsColorOverrides> | undefined>("info");
+
   const [hoveredrowid, setHoveredrowid] = useState<number>(0);
   const [hoveredcolid, setHoveredcolid] = useState<number>(0);
   const [hovered, setHovered] = useState<boolean>(false);
@@ -101,6 +111,25 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
     backgroundColor: backgroundcolor
 }))
 
+function item_button_check(item: string){
+  if (breakWallClick === "info" && twiceClick === "info" && freeWallClick === "info"){
+    if (item === "break_wall"){
+      setBreakWallClick("success")
+    } else if (item === "twice"){
+      setTwiceClick("success")
+    } else if (item === "free_wall"){
+      setFreeWallClick("success")
+    } 
+  }
+  if (item === "break_wall" && breakWallClick === "success"){
+    setBreakWallClick("info")
+  } else if (item === "twice" && twiceClick === "success"){
+    setTwiceClick("info")
+  } else if (item === "free_wall" && freeWallClick === "success"){
+    setFreeWallClick("info")
+  } 
+}
+
 
 function piece_move (x:number, y:number) {
   // rowが縦積みで17行ある為、9行に直すための処理
@@ -121,24 +150,44 @@ function piece_move (x:number, y:number) {
     y: y,
   };
 
-  fetch('/api/move', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(postData),
-  })
+  if (twiceClick === "success") {
+    fetch('/api/twice', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(postData),
+    })
+    .then(response => {
+      if (response.status === 200){
+        console.log("sucsses")
+        setTwiceClick("info")
+      }else if (response.status === 400){
+        console.log("failed")
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  } else {
+    fetch('/api/move', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(postData),
+    })
     .then(response => {
       if (response.status === 200){
         console.log("sucsses")
       }else if (response.status === 400){
         console.log("failed")
       }
-    }
-  )
+    })
     .catch(error => {
       console.error('Error:', error);
     });
+  }
 }
 
 function piece_wall(x:number, y:number, type:string) {
@@ -162,24 +211,65 @@ function piece_wall(x:number, y:number, type:string) {
       y: y,
       wall_type: type
   };
-  fetch(`/api/wall`, {
+
+  if (freeWallClick === "success") {
+    fetch(`/api/free_wall`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": 'application/json'
+        },
+        body: JSON.stringify(postData)
+    })
+    .then(response => {
+      if (response.status === 200){
+        console.log("sucsses")
+        setFreeWallClick("info")
+      }else if (response.status === 400){
+        console.log("failed")
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  } else if (breakWallClick === "success") {
+    fetch(`/api/break_wall`, {
       method: 'POST',
       headers: {
           "Content-Type": 'application/json'
       },
       body: JSON.stringify(postData)
-  })
-  .then(response => {
-    if (response.status === 200){
-      console.log("sucsses")
-    }else if (response.status === 400){
-      console.log("failed")
-    }
+    })
+    .then(response => {
+      if (response.status === 200){
+        console.log("sucsses")
+        setBreakWallClick("info")
+      }else if (response.status === 400){
+        console.log("failed")
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
   }
-)
-  .catch(error => {
-    console.error('Error:', error);
-  });
+  else {
+    fetch(`/api/wall`, {
+      method: 'POST',
+      headers: {
+          "Content-Type": 'application/json'
+      },
+      body: JSON.stringify(postData)
+    })
+    .then(response => {
+      if (response.status === 200){
+        console.log("sucsses")
+      }else if (response.status === 400){
+        console.log("failed")
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
 }
 
 
@@ -188,7 +278,6 @@ const socketRef = useRef<WebSocket>()
 const [isConnected, setIsConnected] = useState<boolean>(false)
 
 useEffect(() => {
-
   socketRef.current = new WebSocket("/api/ws")
     socketRef.current.onopen = function () {
       setIsConnected(true)
@@ -203,13 +292,29 @@ useEffect(() => {
     socketRef.current.onmessage = function (event) {
       const socketdata=JSON.parse(event.data)
       if (socketdata.message !== "pong") {
+        if (socketdata.message === "勝利!"){
+          alert(socketdata.message)
+          Router.push("/")
+        }else if (socketdata.message === "敗北..."){
+          alert(socketdata.message)
+          Router.push("/")
+        }
         setreceiveddata(socketdata)
         console.log(socketdata)
-      }
+      } 
     }
-},[]
-
+  },[]
 )
+
+// アイテムに応じてにこにこ
+useEffect(() => {
+  if (receiveddata?.item) {
+    setBreakWall(receiveddata.item.includes("break_wall"));
+    setTwice(receiveddata.item.includes("twice"));
+    setFreeWall(receiveddata.item.includes("free_wall"));
+  }
+}, [receiveddata?.item]); // receiveddata.item が変更されたときのみ実行
+
     return (
       <>
         <Head>
@@ -246,6 +351,11 @@ useEffect(() => {
             })
             .join("、 ")}
         </Paper>
+        <div className={styles.itemButton}>
+          <Button onClick={() => item_button_check("break_wall")} variant="contained" disabled={!breakWall} color={breakWallClick}>壁破壊</Button>
+          <Button onClick={() => item_button_check("twice")} variant="contained" disabled={!twice} color={twiceClick}>二回行動</Button>
+          <Button onClick={() => item_button_check("free_wall")} variant="contained" disabled={!freeWall} color={freeWallClick}>壁設置</Button>
+        </div>
         <div className={styles.verticalgrid}>
         <Paper className={styles.holdwalltop}>相手 残りの壁：{receiveddata?.other_wall}枚</Paper>
           <Paper className={styles.dodai}>
@@ -417,9 +527,10 @@ useEffect(() => {
                                       }
                                       else{
                                         let canmove:any = []
-                                        for (let i:number=0; i<4; i++){
-                                          if (receiveddata?.move_list?.[i][0] === "move")
-                                            canmove.push(receiveddata?.move_list?.[i])
+                                        for (const item of receiveddata?.move_list ?? []){
+                                          if (item[0] === "move"){
+                                            canmove.push(item)
+                                          }
                                         }
                                         for (let i:number=0; i<canmove.length; i++){
                                           if((canmove[i][1] === col-1) && (((canmove[i][2])*2) === row-1)){
