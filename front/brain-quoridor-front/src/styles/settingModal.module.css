@@ -1,0 +1,133 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1300;
+}
+
+.modalContent {
+  background-color: #fff;
+  padding: 0;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  /* モーダル全体のスクロールを防止 */
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90%;
+}
+
+.tabsAndCloseContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tabs {
+  flex-grow: 1;
+}
+
+.closeButton {
+  margin-left: 16px;
+}
+
+.contentContainer {
+  padding: 24px;
+  overflow-y: auto;
+  /* 縦スクロールを許可 */
+  flex-grow: 1;
+  /* 残りのスペースを埋める */
+  max-height: calc(100% - 64px);
+  /* タブとヘッダー部分を引いた高さ */
+}
+
+.roomInfo {
+  color: #333;
+  /* ダークグレーで文字を見やすくする */
+  font-size: 16px;
+  /* フォントサイズを適度に設定 */
+  margin-top: 10px;
+  /* 上に少し余白を追加 */
+}
+
+.rulesContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.rulesTextContainer {
+  flex: 2;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.rulesButtonsContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+
+.bgmControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.bgmSelect {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.bgmSelect:focus {
+  outline: none;
+  border-color: #0070f3;
+}
+
+.bgmButton {
+  background-color: #0070f3;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.bgmButton:hover {
+  background-color: #005bb5;
+}
+
+.tabPanel {
+  padding: 16px;
+  overflow-y: auto;
+  /* 各タブ内のスクロールを許可 */
+  height: 100%;
+  /* タブ内コンテンツがすべて表示される高さ */
+  box-sizing: border-box;
+  /* パディングを含めたサイズ調整 */
+}

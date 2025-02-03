@@ -9,7 +9,7 @@
 			const user = document.getElementById('userName').value;
 
 			const postData = {
-				board_name: board,
+				room_name: board,
 				user_name: user
 			};
 			fetch(`/api/create`, {
@@ -31,7 +31,7 @@
 			const user = document.getElementById('userName').value;
 
 			const postData = {
-				board_name: board,
+				room_name: board,
 				user_name: user
 			};
 			fetch(`/api/join`, {
@@ -47,6 +47,16 @@
 			})
 			.catch(error => console.error('Error:', error));
 		}
+		function ai() {
+			fetch(`/api/ai`, {
+				method: 'POST',
+			})
+			.then(response => response.json())
+			.then(data => {
+				console.log(data)
+			})
+			.catch(error => {console.error('Error:', error)});
+		}
 	</script>
 </head>
 <body>
@@ -54,6 +64,7 @@
 	<input type="text" id="userName" placeholder="user name">
 	<button onclick="create()">create</button>
 	<button onclick="join()">join</button>
+	<button onclick="ai()">ai</button>
 	<a href="/game.html">game</a>
 </body>
 <html>

@@ -1,3 +1,161 @@
+/* Mobile */
+@media (max-width: 700px) {
+  .relativeScale {
+    transform: scale(0.05);
+  }
+} 
+
+.Optionbtn {
+  display: inline-block;
+  position: absolute;
+  top: 10px;
+  right: 0;
+  text-decoration: none; 
+  text-align: right;
+  font-weight: bold;
+  background-color: rgb(100, 100, 99);
+}
+.itemview{
+  width: 205px;
+  height: 700px;
+  position: absolute;
+  top: 120px;
+  left: 30px;
+  background-color: rgb(155, 146, 146);
+
+}
+.relativeScale {
+  transform: scale(1);
+}
+
+.verticalgrid{
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(3, auto);
+  gap: 10px;
+}
+
+.holdwalltop{
+  width: 700px;
+  height: 100px;
+  z-index: 1;
+  background-color: rgb(100, 100, 99);
+  display: flex;
+  /* 
+  position: 
+  absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0; */
+  margin: auto;
+  margin-top: 10px;
+}
+
+.holdwallbottom{
+  width: 700px;
+  height: 100px;
+  z-index: 1;
+  background-color: rgb(100, 100, 99);
+  display: flex;
+  /* 
+  position: 
+  absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0; */
+  margin: auto;
+  margin-bottom: 10px;
+}
+
+.dodai{
+  width: 700px;
+  height: 700px;
+  z-index: 1;
+  background-color: rgb(44, 26, 1);
+  display: flex;
+  /* position: absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0; */
+  margin: auto;
+}
+
+.gridField {
+  width: 620px;
+  height: 620px;
+  display: flex;
+  /* position: absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0; */
+  margin: auto;
+}
+
+
+.banmenCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.banmeLightSpacing {
+  display: flex;
+}
+
+.banmeScale {
+  width: 60px;
+  height: 60px;
+  /* background-color: rgb(83, 48, 3); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.banmeScale:hover {
+  background-color: rgba(102, 102, 102, 0.5);
+} 
+
+.banmeLightSpacingScale {
+  width: 60px;
+  height: 10px;
+  /* background-color: #ffa5a5; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+/* .banmeLightSpacingScale:hover {
+  background-color: rgb(60, 60, 60);
+} */
+
+.banmeStraightSpacingScale {
+  width: 10px;
+  height: 60px;
+  /* background-color: rgb(255, 165, 165); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+/* .banmeStraightSpacingScale:hover {
+  background-color: rgb(60, 60, 60);
+} */
+
+.banmeCrossSpacingScale {
+  width: 10px;
+  height: 10px;
+  background-color: rgb(83, 48, 3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
 .main {
   display: flex;
   flex-direction: column;
