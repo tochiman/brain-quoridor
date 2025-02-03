@@ -78,8 +78,8 @@ async def ai():
         games[bid] = game
 
         response = JSONResponse(content = {"message": "作成しました"}, status_code = 200)
-        response.set_cookie(key="bid", value=bid)
-        response.set_cookie(key="uid", value=uid)
+        response.set_cookie(key="bid", value=bid, secure=False, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        response.set_cookie(key="uid", value=uid, secure=False, httponly=True, samesite='strict', expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
         return response
 
     return JSONResponse(content = {"message": "既に存在しています"}, status_code = 400)
