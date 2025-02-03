@@ -5,20 +5,24 @@
   }
 } 
 
-.btn{
-  position: relative;
-  /* width: 100px;
-  height: 50px; */
-}
-
 .Optionbtn {
-  /* display: block; */
-  position:absolute;
-  right:0;
-  /* text-decoration: none; 
-  text-align: center;
-  font-weight: bold; */
+  display: inline-block;
+  position: absolute;
+  top: 10px;
+  right: 0;
+  text-decoration: none; 
+  text-align: right;
+  font-weight: bold;
   background-color: rgb(100, 100, 99);
+}
+.itemview{
+  width: 205px;
+  height: 700px;
+  position: absolute;
+  top: 120px;
+  left: 30px;
+  background-color: rgb(155, 146, 146);
+
 }
 .relativeScale {
   transform: scale(1);

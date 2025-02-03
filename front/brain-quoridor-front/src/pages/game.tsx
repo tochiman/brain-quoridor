@@ -1,9 +1,10 @@
 import styles from "@/styles/Home.module.css";
 import { styled } from"@mui/material/styles";
 import React, {HTMLAttributes, useState, useEffect, useRef} from "react";
-import { Grid, ListClassKey, Paper, PaperProps, Typography, Button } from "@mui/material";
+import { Grid, ListClassKey, Paper, PaperProps, Typography, Button, stepLabelClasses } from "@mui/material";
 import Head from "next/head";
 import { ConstructionOutlined } from "@mui/icons-material";
+import SettingModal from '../components/settingModal';
 
 function range(start: number, end: number): number[] {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -15,6 +16,36 @@ export default function Home() {  //useStateの宣言 ホバーの真偽宣言
   const [hovered, setHovered] = useState<boolean>(false);
   const [receiveddata, setreceiveddata] = useState<any>();
   const [wall, setwall] = useState<any>([]);
+  const [open, setOpen] = useState(false);
+  const [selectedBGM, setSelectedBGM] = useState('none'); // 現在選択されているBGM
+  const audioRef = useRef<HTMLAudioElement | null>(null); // 音楽再生用のref
+  const [isPlaying, setIsPlaying] = useState(false); // 再生状態
+  
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  
+  // 音楽再生の関数
+  const handlePlayBGM = (url: string) => {
+  if (audioRef.current) {
+    audioRef.current.src = url; // 再生する音楽のURLを設定
+    audioRef.current.play(); // 再生開始
+    setIsPlaying(true);
+    }
+  };
+  
+  // 音楽停止の関数
+  const handlePauseBGM = () => {
+  if (audioRef.current) {
+    audioRef.current.pause(); // 再生停止
+    setIsPlaying(false);
+    }
+  };
+  
+  // BGM選択時の処理
+  const handleBGMChange = (newValue: string) => {
+    setSelectedBGM(newValue);
+  };
+  
 
   const handleMouseEnter = (bannmenrowid:number, bannmencolid:number, nextbannmencolid:number, nextbannmenrowid: number) => {
     setHoveredrowid(bannmenrowid);
@@ -188,8 +219,35 @@ useEffect(() => {
           <link rel="icon" href="/favicon.ico" />
         </Head>
         <main>
+        <div >
+        <Button className={styles.Optionbtn} variant="contained" onClick={handleOpen}>
+          設定を開く
+        </Button>
+        <audio ref={audioRef} /> {/* オーディオ要素 */}
+          <SettingModal
+            open={open}
+            handleClose={handleClose}
+            selectedBGM={selectedBGM}
+            onBGMChange={handleBGMChange}
+            handlePlayBGM={handlePlayBGM}
+            handlePauseBGM={handlePauseBGM}
+            isPlaying={isPlaying}
+          />
+          </div>
+
+        <Paper className={styles.itemview}>
+          所持アイテム：
+          {receiveddata?.item
+            ?.map((item:any) => {
+              if (item === "break_wall") return "壁破壊";
+              if (item === "twice") return "二回行動";
+              if (item === "free_wall") return "壁設置";
+              return item; 
+            })
+            .join("、 ")}
+        </Paper>
         <div className={styles.verticalgrid}>
-        <Paper className={styles.holdwalltop}>残りの壁：{receiveddata?.other_wall}枚</Paper>
+        <Paper className={styles.holdwalltop}>相手 残りの壁：{receiveddata?.other_wall}枚</Paper>
           <Paper className={styles.dodai}>
             <Grid container item
               className={`${styles.relativeScale} ${styles.gridField}`}             
@@ -386,10 +444,7 @@ useEffect(() => {
               ))}
             </Grid>
           </Paper>
-          <Paper className={styles.holdwallbottom}>残りの壁：{receiveddata?.wall}枚</Paper>
-          </div>
-          <div className="btn">
-            <a href="https://x.com" target="_blank" className="Optionbtn">設定</a>
+          <Paper className={styles.holdwallbottom}>自分 残りの壁：{receiveddata?.wall}枚</Paper>
           </div>
         </main>
       </>
