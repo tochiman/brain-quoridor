@@ -24,7 +24,7 @@ const RoomContent: React.FC<RoomContentProps> = ({ roomName, userName }) => {
             if (response.ok) {
                 const data = await response.json();
                 alert(data.message); // 成功メッセージを表示
-                Router.push("/")
+                await Router.push("/")
             } else {
                 const errorData = await response.json();
                 alert(`エラー: ${errorData.message}`); // エラーメッセージを表示
